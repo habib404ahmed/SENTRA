@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { MonitoredServer, ThreatAlert, NotificationItem, AlertStatus } from '@/types';
 import { sentraApi } from '@/services/api';
+import { CreateServerPayload, UpdateServerPayload } from '@/services/servers';
 
 export type PageId = 
   | 'overview' 
@@ -40,13 +41,15 @@ interface AppContextType {
   notifications: NotificationItem[];
   unreadNotifsCount: number;
   loading: boolean;
+  serversLoading: boolean;
+  serversError: string | null;
   
   // Toast notifications
   toast: ToastState;
   showToast: (message: string, type?: ToastState['type']) => void;
   hideToast: () => void;
   
-  // Mock Authentication
+  // Authentication
   isAuthenticated: boolean;
   login: (email?: string) => void;
   logout: () => void;
@@ -59,12 +62,15 @@ interface AppContextType {
   };
 
   // State mutation actions
-  addServer: (data: Omit<MonitoredServer, 'id' | 'stats' | 'lastActivity' | 'activeThreats'>) => Promise<boolean>;
+  addServer: (data: CreateServerPayload) => Promise<boolean>;
+  updateServer: (id: string, data: UpdateServerPayload) => Promise<boolean>;
+  deleteServer: (id: string) => Promise<boolean>;
   toggleServerMonitoring: (id: string) => Promise<void>;
   updateAlertStatus: (id: string, status: AlertStatus, note?: string) => Promise<void>;
   markNotificationAsRead: (id: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
   refreshAllData: () => Promise<void>;
+  refreshServers: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -80,8 +86,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [alerts, setAlerts] = useState<ThreatAlert[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [serversLoading, setServersLoading] = useState(false);
+  const [serversError, setServersError] = useState<string | null>(null);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default logged in for smooth preview
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [currentUser] = useState({
     name: 'Habib Ahmed',
     role: 'Lead SOC Analyst',
@@ -107,20 +115,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setToast(prev => ({ ...prev, show: false }));
   };
 
+  const refreshServers = async () => {
+    setServersLoading(true);
+    setServersError(null);
+    try {
+      const fetched = await sentraApi.getServers();
+      setServers(fetched);
+    } catch (err: any) {
+      console.error('Failed to load monitored servers from API', err);
+      const msg = err?.message || 'Could not connect to FastAPI / PostgreSQL backend.';
+      setServersError(msg);
+      showToast(`Database API Error: ${msg}`, 'error');
+    } finally {
+      setServersLoading(false);
+    }
+  };
+
   const refreshAllData = async () => {
     try {
       setLoading(true);
-      const [fetchedServers, fetchedAlerts, fetchedNotifs] = await Promise.all([
-        sentraApi.getServers(),
-        sentraApi.getAlerts(),
-        sentraApi.getNotifications()
+      await Promise.allSettled([
+        refreshServers(),
+        (async () => {
+          const fetchedAlerts = await sentraApi.getAlerts();
+          setAlerts(fetchedAlerts);
+        })(),
+        (async () => {
+          const fetchedNotifs = await sentraApi.getNotifications();
+          setNotifications(fetchedNotifs);
+        })()
       ]);
-      setServers(fetchedServers);
-      setAlerts(fetchedAlerts);
-      setNotifications(fetchedNotifs);
     } catch (err) {
       console.error('Failed to load initial data', err);
-      showToast('Error loading simulated telemetry', 'error');
     } finally {
       setLoading(false);
     }
@@ -130,26 +156,61 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     refreshAllData();
   }, []);
 
-  const addServer = async (data: Omit<MonitoredServer, 'id' | 'stats' | 'lastActivity' | 'activeThreats'>) => {
+  const addServer = async (data: CreateServerPayload): Promise<boolean> => {
     try {
       const created = await sentraApi.createServer(data);
-      setServers(prev => [created, ...prev]);
-      showToast(`Asset "${created.name}" registered successfully. Unidirectional tap enabled.`, 'success');
+      // Refresh list to keep in sync with PostgreSQL
+      await refreshServers();
+      showToast(`Asset "${created.name}" registered successfully in PostgreSQL.`, 'success');
       return true;
-    } catch (err) {
-      showToast('Failed to register server', 'error');
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to register server';
+      showToast(msg, 'error');
+      return false;
+    }
+  };
+
+  const updateServer = async (id: string, data: UpdateServerPayload): Promise<boolean> => {
+    try {
+      const updated = await sentraApi.updateServer(id, data);
+      setServers(prev => prev.map(s => s.id === id ? updated : s));
+      showToast(`Asset "${updated.name}" updated successfully.`, 'success');
+      return true;
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to update server';
+      showToast(msg, 'error');
+      return false;
+    }
+  };
+
+  const deleteServer = async (id: string): Promise<boolean> => {
+    try {
+      await sentraApi.deleteServer(id);
+      setServers(prev => prev.filter(s => s.id !== id));
+      if (selectedServerId === id) {
+        setSelectedServerId(null);
+      }
+      showToast('Asset deregistered and removed from database.', 'success');
+      return true;
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to delete server';
+      showToast(msg, 'error');
       return false;
     }
   };
 
   const toggleServerMonitoring = async (id: string) => {
-    const updated = await sentraApi.toggleServerMonitoring(id);
-    if (updated) {
-      setServers(prev => prev.map(s => s.id === id ? updated : s));
-      showToast(
-        `Monitoring status for "${updated.name}" changed to ${updated.monitoringStatus.toUpperCase()}`,
-        'info'
-      );
+    try {
+      const updated = await sentraApi.toggleServerMonitoring(id);
+      if (updated) {
+        setServers(prev => prev.map(s => s.id === id ? updated : s));
+        showToast(
+          `Monitoring status for "${updated.name}" set to ${updated.monitoringStatus.toUpperCase()}`,
+          'info'
+        );
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to toggle monitoring status', 'error');
     }
   };
 
@@ -202,6 +263,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         notifications,
         unreadNotifsCount,
         loading,
+        serversLoading,
+        serversError,
         toast,
         showToast,
         hideToast,
@@ -210,11 +273,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         logout,
         currentUser,
         addServer,
+        updateServer,
+        deleteServer,
         toggleServerMonitoring,
         updateAlertStatus,
         markNotificationAsRead,
         markAllNotificationsAsRead,
         refreshAllData,
+        refreshServers,
       }}
     >
       {children}

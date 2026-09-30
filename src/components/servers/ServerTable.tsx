@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
+import { Modal } from '@/components/common/Modal';
 import { 
   Server, 
   Search, 
@@ -11,19 +12,27 @@ import {
   ExternalLink, 
   LayoutGrid, 
   List, 
-  Activity, 
   ShieldAlert, 
   CheckCircle2,
-  Filter
+  Trash2,
+  Edit2,
+  RefreshCw,
+  AlertTriangle,
+  Database
 } from 'lucide-react';
-import { ServerEnvironment, TrafficSourceType } from '@/types';
+import { MonitoredServer } from '@/types';
+import { EditServerModal } from './EditServerModal';
 
 export const ServerTable: React.FC = () => {
   const { 
     servers, 
+    serversLoading,
+    serversError,
+    refreshServers,
     setSelectedServerId, 
     setIsAddServerOpen, 
-    toggleServerMonitoring 
+    toggleServerMonitoring,
+    deleteServer
   } = useApp();
 
   const [search, setSearch] = useState('');
@@ -31,6 +40,11 @@ export const ServerTable: React.FC = () => {
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+
+  // Edit and Delete Modal State
+  const [editingServer, setEditingServer] = useState<MonitoredServer | null>(null);
+  const [deletingServer, setDeletingServer] = useState<MonitoredServer | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredServers = servers.filter((s) => {
     const matchesSearch = 
@@ -46,8 +60,36 @@ export const ServerTable: React.FC = () => {
     return matchesSearch && matchesEnv && matchesSource && matchesStatus;
   });
 
+  const handleDeleteConfirm = async () => {
+    if (!deletingServer) return;
+    setIsDeleting(true);
+    await deleteServer(deletingServer.id);
+    setIsDeleting(false);
+    setDeletingServer(null);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Database Connection Status Banner if Error */}
+      {serversError && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center justify-between gap-3 text-rose-300 text-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <div>
+              <span className="font-semibold text-rose-200">PostgreSQL Connection Warning:</span> {serversError}
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<RefreshCw className="w-3.5 h-3.5" />}
+            onClick={() => refreshServers()}
+          >
+            Retry Connection
+          </Button>
+        </div>
+      )}
+
       {/* Control Bar: Filters & Actions */}
       <div className="soc-card p-4 bg-background-surface/90 border border-border rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2.5 flex-1">
@@ -74,6 +116,7 @@ export const ServerTable: React.FC = () => {
             <option value="staging">Staging</option>
             <option value="development">Development</option>
             <option value="dmz">DMZ</option>
+            <option value="Demo">Demo</option>
           </select>
 
           {/* Source Filter */}
@@ -83,11 +126,13 @@ export const ServerTable: React.FC = () => {
             className="bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
           >
             <option value="all">All Traffic Sources</option>
+            <option value="Flow Telemetry">Flow Telemetry</option>
             <option value="Optical Diode Tap">Optical Diode Tap</option>
             <option value="Mirrored Traffic">Mirrored Traffic</option>
             <option value="NetFlow">NetFlow</option>
             <option value="IPFIX">IPFIX</option>
             <option value="PCAP">PCAP</option>
+            <option value="Other Authorized Flow Source">Other Authorized Flow Source</option>
           </select>
 
           {/* Status Filter */}
@@ -104,6 +149,15 @@ export const ServerTable: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-end lg:self-auto">
+          {/* Refresh Button */}
+          <button
+            onClick={() => refreshServers()}
+            className={`p-1.5 rounded bg-background-card border border-border text-slate-400 hover:text-sentra-cyan transition-colors ${serversLoading ? 'animate-spin text-sentra-cyan' : ''}`}
+            title="Refresh assets from PostgreSQL"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+
           {/* Table / Card view toggle */}
           <div className="flex items-center bg-background-card border border-border rounded-lg p-0.5">
             <button
@@ -134,7 +188,13 @@ export const ServerTable: React.FC = () => {
       </div>
 
       {/* Main Server List View */}
-      {viewMode === 'table' ? (
+      {serversLoading && servers.length === 0 ? (
+        /* Loading Skeleton */
+        <div className="soc-card p-12 bg-background-surface/80 border border-border rounded-xl flex flex-col items-center justify-center gap-3 text-slate-400 text-xs">
+          <RefreshCw className="w-6 h-6 animate-spin text-sentra-cyan" />
+          <span>Synchronizing monitored assets with PostgreSQL database...</span>
+        </div>
+      ) : viewMode === 'table' ? (
         <div className="soc-card bg-background-surface/80 border border-border rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -154,8 +214,23 @@ export const ServerTable: React.FC = () => {
               <tbody className="divide-y divide-border/40">
                 {filteredServers.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-xs text-slate-500">
-                      No matching monitored servers found. Click "Add Server" to register one.
+                    <td colSpan={9} className="py-12 text-center text-xs text-slate-500">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Database className="w-8 h-8 text-slate-600 mb-1" />
+                        <span className="text-slate-400 font-medium">No monitored servers found in PostgreSQL database.</span>
+                        <p className="text-slate-500 text-[11px] max-w-sm">
+                          Add a server above to establish real-time passive flow capture.
+                        </p>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          icon={<Plus className="w-3.5 h-3.5" />}
+                          onClick={() => setIsAddServerOpen(true)}
+                          className="mt-2"
+                        >
+                          Register First Server
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -214,7 +289,7 @@ export const ServerTable: React.FC = () => {
                         {server.lastActivity}
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => toggleServerMonitoring(server.id)}
                             className={`p-1.5 rounded transition-colors ${
@@ -225,6 +300,20 @@ export const ServerTable: React.FC = () => {
                             title={server.monitoringStatus === 'active' ? 'Pause Monitoring' : 'Resume Monitoring'}
                           >
                             {server.monitoringStatus === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => setEditingServer(server)}
+                            className="p-1.5 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                            title="Edit Asset"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingServer(server)}
+                            className="p-1.5 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="Deregister Asset"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setSelectedServerId(server.id)}
@@ -245,81 +334,141 @@ export const ServerTable: React.FC = () => {
       ) : (
         /* Cards View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredServers.map((server) => (
-            <div
-              key={server.id}
-              onClick={() => setSelectedServerId(server.id)}
-              className="soc-card p-5 bg-background-surface/80 border border-border hover:border-slate-600 rounded-xl cursor-pointer group flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="p-2 rounded bg-slate-800 text-sentra-cyan shrink-0">
-                    <Server className="w-5 h-5" />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Badge env={server.environment}>{server.environment}</Badge>
-                    <Badge status={server.monitoringStatus}>{server.monitoringStatus}</Badge>
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <h4 className="text-sm font-bold text-slate-100 group-hover:text-sentra-cyan transition-colors">
-                    {server.name}
-                  </h4>
-                  <div className="text-xs font-mono text-slate-400 mt-0.5">
-                    {server.ipAddress} • {server.hostname}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-2 line-clamp-2">
-                    {server.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-border/60">
-                <div className="grid grid-cols-3 gap-2 text-[10px] font-mono mb-3">
-                  <div>
-                    <span className="text-slate-500 block">Bandwidth</span>
-                    <span className="text-slate-200 font-semibold">{server.stats.bandwidthMbps} Mbps</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">PPS</span>
-                    <span className="text-slate-200 font-semibold">{server.stats.pps}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Threats</span>
-                    <span className={`font-semibold ${server.activeThreats > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {server.activeThreats}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-border/30" onClick={(e) => e.stopPropagation()}>
-                  <span className="text-[11px] font-mono text-sentra-cyan">
-                    {server.trafficSource}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant={server.monitoringStatus === 'active' ? 'ghost' : 'success'}
-                      size="sm"
-                      onClick={() => toggleServerMonitoring(server.id)}
-                    >
-                      {server.monitoringStatus === 'active' ? 'Pause' : 'Resume'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={<ExternalLink className="w-3.5 h-3.5" />}
-                      onClick={() => setSelectedServerId(server.id)}
-                    >
-                      Open
-                    </Button>
-                  </div>
-                </div>
-              </div>
+          {filteredServers.length === 0 ? (
+            <div className="col-span-full soc-card p-12 bg-background-surface/80 border border-border rounded-xl text-center text-xs text-slate-500">
+              No matching monitored servers found.
             </div>
-          ))}
+          ) : (
+            filteredServers.map((server) => (
+              <div
+                key={server.id}
+                onClick={() => setSelectedServerId(server.id)}
+                className="soc-card p-5 bg-background-surface/80 border border-border hover:border-slate-600 rounded-xl cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div className="p-2 rounded bg-slate-800 text-sentra-cyan shrink-0">
+                      <Server className="w-5 h-5" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Badge env={server.environment}>{server.environment}</Badge>
+                      <Badge status={server.monitoringStatus}>{server.monitoringStatus}</Badge>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <h4 className="text-sm font-bold text-slate-100 group-hover:text-sentra-cyan transition-colors">
+                      {server.name}
+                    </h4>
+                    <div className="text-xs font-mono text-slate-400 mt-0.5">
+                      {server.ipAddress} • {server.hostname}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-2 line-clamp-2">
+                      {server.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/60">
+                  <div className="grid grid-cols-3 gap-2 text-[10px] font-mono mb-3">
+                    <div>
+                      <span className="text-slate-500 block">Bandwidth</span>
+                      <span className="text-slate-200 font-semibold">{server.stats.bandwidthMbps} Mbps</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">PPS</span>
+                      <span className="text-slate-200 font-semibold">{server.stats.pps}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Threats</span>
+                      <span className={`font-semibold ${server.activeThreats > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {server.activeThreats}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-border/30" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-[11px] font-mono text-sentra-cyan">
+                      {server.trafficSource}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant={server.monitoringStatus === 'active' ? 'ghost' : 'success'}
+                        size="sm"
+                        onClick={() => toggleServerMonitoring(server.id)}
+                      >
+                        {server.monitoringStatus === 'active' ? 'Pause' : 'Resume'}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setEditingServer(server)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={<ExternalLink className="w-3.5 h-3.5" />}
+                        onClick={() => setSelectedServerId(server.id)}
+                      >
+                        Open
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
+
+      {/* Edit Server Modal */}
+      <EditServerModal
+        server={editingServer}
+        isOpen={!!editingServer}
+        onClose={() => setEditingServer(null)}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deletingServer}
+        onClose={() => setDeletingServer(null)}
+        title="Deregister Monitored Asset"
+        subtitle="Confirm deletion from PostgreSQL database"
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/25 flex items-start gap-2.5 text-xs text-rose-300">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              Are you sure you want to deregister <strong className="text-slate-100 font-semibold">{deletingServer?.name}</strong> (<span className="font-mono text-slate-200">{deletingServer?.ipAddress}</span>)?
+              <p className="mt-1 text-slate-400">
+                This action will delete the asset record from PostgreSQL and terminate passive flow monitoring.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDeletingServer(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Confirm Deregistration'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

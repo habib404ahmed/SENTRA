@@ -144,6 +144,7 @@ export const AddServerModal: React.FC = () => {
               { value: 'staging', label: 'Staging' },
               { value: 'development', label: 'Development' },
               { value: 'dmz', label: 'DMZ (Perimeter)' },
+              { value: 'Demo', label: 'Demo' },
             ]}
           />
 
@@ -152,6 +153,7 @@ export const AddServerModal: React.FC = () => {
             value={trafficSource}
             onChange={(e) => setTrafficSource(e.target.value as TrafficSourceType)}
             options={[
+              { value: 'Flow Telemetry', label: 'Flow Telemetry' },
               { value: 'Optical Diode Tap', label: 'Optical Diode Tap' },
               { value: 'Mirrored Traffic', label: 'Mirrored Traffic (SPAN / TAP)' },
               { value: 'NetFlow', label: 'NetFlow v9' },

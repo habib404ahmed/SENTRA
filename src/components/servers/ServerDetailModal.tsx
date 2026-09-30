@@ -15,8 +15,11 @@ import {
   Pause, 
   ExternalLink,
   Lock,
-  ArrowUpRight
+  ArrowUpRight,
+  Edit2,
+  Trash2
 } from 'lucide-react';
+import { EditServerModal } from './EditServerModal';
 import { 
   AreaChart, 
   Area, 
@@ -38,10 +41,13 @@ export const ServerDetailModal: React.FC = () => {
     servers, 
     alerts, 
     toggleServerMonitoring,
-    setSelectedAlertId
+    setSelectedAlertId,
+    deleteServer
   } = useApp();
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!selectedServerId) return null;
 
@@ -49,6 +55,14 @@ export const ServerDetailModal: React.FC = () => {
   if (!server) return null;
 
   const serverAlerts = alerts.filter(a => a.serverId === server.id);
+
+  const handleDelete = async () => {
+    if (window.confirm(`Deregister "${server.name}" (${server.ipAddress}) from PostgreSQL?`)) {
+      setIsDeleting(true);
+      await deleteServer(server.id);
+      setIsDeleting(false);
+    }
+  };
 
   // Generate realistic telemetry chart for this specific asset
   const assetTelemetry = [
@@ -97,6 +111,23 @@ export const ServerDetailModal: React.FC = () => {
               onClick={() => toggleServerMonitoring(server.id)}
             >
               {server.monitoringStatus === 'active' ? 'Pause Tap' : 'Resume Tap'}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Edit2 className="w-3.5 h-3.5" />}
+              onClick={() => setIsEditing(true)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Trash2 className="w-3.5 h-3.5" />}
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Deregister'}
             </Button>
           </div>
         </div>
@@ -335,12 +366,20 @@ export const ServerDetailModal: React.FC = () => {
 
         {/* Modal Footer */}
         <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-slate-400">
-          <span className="font-mono text-[11px]">Passive Unidirectional Telemetry Tap (Phase 1 Simulated)</span>
+          <span className="font-mono text-[11px] text-sentra-cyan">
+            PostgreSQL Asset ID: #{server.id} • Live Database Record
+          </span>
           <Button variant="ghost" size="sm" onClick={() => setSelectedServerId(null)}>
             Close Console
           </Button>
         </div>
       </div>
+
+      <EditServerModal
+        server={server}
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+      />
     </Modal>
   );
 };

@@ -3,11 +3,9 @@ import {
   ThreatAlert, 
   KPIMetrics, 
   TrafficDataPoint, 
-  ThreatIntelItem, 
   NotificationItem,
   AlertStatus
 } from '@/types';
-import { initialMockServers } from '@/data/mockServers';
 import { initialMockAlerts } from '@/data/mockAlerts';
 import { 
   mockKpiMetrics, 
@@ -19,20 +17,57 @@ import {
 } from '@/data/mockTraffic';
 import { mockThreatCategoriesIntel, mockObservedIps } from '@/data/mockThreats';
 import { initialMockNotifications } from '@/data/mockNotifications';
+import { serversApi, CreateServerPayload, UpdateServerPayload } from './servers';
 
-// In-memory frontend state mimicking backend database storage for Phase 1
-let serversStore: MonitoredServer[] = [...initialMockServers];
+// Simulated latency helper for remaining mock modules (Phase 3+)
+const delay = (ms: number = 100) => new Promise(resolve => setTimeout(resolve, ms));
+
 let alertsStore: ThreatAlert[] = [...initialMockAlerts];
 let notificationsStore: NotificationItem[] = [...initialMockNotifications];
 
-// Simulated network latency helper
-const delay = (ms: number = 150) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const sentraApi = {
-  // === Dashboard & KPIs ===
+  // === Servers Endpoints (Connected to FastAPI + PostgreSQL) ===
+  async getServers(): Promise<MonitoredServer[]> {
+    return await serversApi.getAll();
+  },
+
+  async getServerById(id: string): Promise<MonitoredServer | undefined> {
+    try {
+      return await serversApi.getById(id);
+    } catch {
+      return undefined;
+    }
+  },
+
+  async createServer(serverData: CreateServerPayload): Promise<MonitoredServer> {
+    return await serversApi.create(serverData);
+  },
+
+  async updateServer(id: string | number, data: UpdateServerPayload): Promise<MonitoredServer> {
+    return await serversApi.update(id, data);
+  },
+
+  async deleteServer(id: string | number): Promise<void> {
+    await serversApi.delete(id);
+  },
+
+  async toggleServerMonitoring(id: string): Promise<MonitoredServer | null> {
+    const current = await this.getServerById(id);
+    if (!current) return null;
+    const nextStatus = current.monitoringStatus === 'active' ? 'paused' : 'active';
+    return await serversApi.update(id, { status: nextStatus });
+  },
+
+  // === Dashboard & KPIs (Server count pulled dynamically from real database) ===
   async getDashboardMetrics(): Promise<KPIMetrics> {
-    await delay();
-    // Dynamically update active threats count based on store
+    let serverCount = 0;
+    try {
+      const liveServers = await serversApi.getAll();
+      serverCount = liveServers.length;
+    } catch {
+      serverCount = 0;
+    }
+
     const activeCount = alertsStore.filter(a => a.status === 'active').length;
     const criticalCount = alertsStore.filter(a => a.status === 'active' && a.severity === 'critical').length;
     
@@ -40,7 +75,7 @@ export const sentraApi = {
       ...mockKpiMetrics,
       monitoredServers: {
         ...mockKpiMetrics.monitoredServers,
-        value: serversStore.length,
+        value: serverCount,
       },
       activeThreats: {
         ...mockKpiMetrics.activeThreats,
@@ -50,6 +85,7 @@ export const sentraApi = {
     };
   },
 
+  // === Demo Data Modules (Clearly marked, pending future backend ML/stream phases) ===
   async getThreatDistribution() {
     await delay();
     return mockThreatDistribution;
@@ -60,47 +96,7 @@ export const sentraApi = {
     return mockHourlyTraffic;
   },
 
-  // === Servers Endpoints ===
-  async getServers(): Promise<MonitoredServer[]> {
-    await delay();
-    return [...serversStore];
-  },
-
-  async getServerById(id: string): Promise<MonitoredServer | undefined> {
-    await delay();
-    return serversStore.find(s => s.id === id);
-  },
-
-  async createServer(serverData: Omit<MonitoredServer, 'id' | 'stats' | 'lastActivity' | 'activeThreats'>): Promise<MonitoredServer> {
-    await delay();
-    const newServer: MonitoredServer = {
-      ...serverData,
-      id: `srv-${String(serversStore.length + 1).padStart(3, '0')}`,
-      lastActivity: 'Just now',
-      activeThreats: 0,
-      stats: {
-        packetsProcessed: '0',
-        bytesProcessed: '0 MB',
-        flowCount: '0',
-        connectionRate: '0/s',
-        pps: 0,
-        bandwidthMbps: 0,
-      }
-    };
-    serversStore = [newServer, ...serversStore];
-    return newServer;
-  },
-
-  async toggleServerMonitoring(id: string): Promise<MonitoredServer | null> {
-    await delay();
-    const server = serversStore.find(s => s.id === id);
-    if (!server) return null;
-    server.monitoringStatus = server.monitoringStatus === 'active' ? 'paused' : 'active';
-    serversStore = [...serversStore];
-    return { ...server };
-  },
-
-  // === Alerts Endpoints ===
+  // === Alerts Endpoints (Phase 3 Demo/Scaffold Data) ===
   async getAlerts(): Promise<ThreatAlert[]> {
     await delay();
     return [...alertsStore];
@@ -123,7 +119,7 @@ export const sentraApi = {
     return { ...alert };
   },
 
-  // === Traffic Analytics Endpoints ===
+  // === Traffic Analytics Endpoints (Phase 4 Demo Data) ===
   async getTrafficAnalytics() {
     await delay();
     return {
@@ -134,7 +130,7 @@ export const sentraApi = {
     };
   },
 
-  // === Threat Intelligence Endpoints ===
+  // === Threat Intelligence Endpoints (Phase 5 Demo Data) ===
   async getThreatIntelligence() {
     await delay();
     return {
