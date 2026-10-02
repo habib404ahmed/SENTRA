@@ -11,9 +11,13 @@ import {
   Clock, 
   AlertTriangle,
   RotateCcw,
-  Layers
+  Layers,
+  Play,
+  Activity,
+  Cpu
 } from 'lucide-react';
 import { Severity, ThreatCategory, AlertStatus } from '@/types';
+import { RunDetectionModal } from './RunDetectionModal';
 
 export const AlertTable: React.FC = () => {
   const { alerts, setSelectedAlertId, servers, updateAlertStatus } = useApp();
@@ -24,6 +28,7 @@ export const AlertTable: React.FC = () => {
   const [selectedServer, setSelectedServer] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('24h');
+  const [isRunModalOpen, setIsRunModalOpen] = useState(false);
 
   const filteredAlerts = alerts.filter((alert) => {
     const matchesSearch =
@@ -31,7 +36,8 @@ export const AlertTable: React.FC = () => {
       alert.sourceIp.includes(search) ||
       alert.destinationIp.includes(search) ||
       alert.serverName.toLowerCase().includes(search.toLowerCase()) ||
-      alert.id.toLowerCase().includes(search.toLowerCase());
+      alert.id.toLowerCase().includes(search.toLowerCase()) ||
+      (alert.detectionDecision && alert.detectionDecision.toLowerCase().includes(search.toLowerCase()));
 
     const matchesSeverity = selectedSeverity === 'all' || alert.severity === selectedSeverity;
     const matchesThreat = selectedThreat === 'all' || alert.threat === selectedThreat;
@@ -49,9 +55,11 @@ export const AlertTable: React.FC = () => {
     setSelectedStatus('all');
   };
 
+  const activeAlerts = alerts.filter(a => a.status === 'new' || a.status === 'acknowledged' || a.status === 'investigating' || a.status === 'active');
+
   return (
     <div className="space-y-4">
-      {/* Filters Toolbar */}
+      {/* Filters & Action Toolbar */}
       <div className="soc-card p-4 bg-background-surface/90 border border-border rounded-xl space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Search Box */}
@@ -59,25 +67,40 @@ export const AlertTable: React.FC = () => {
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by threat, IP (e.g. 203.0.113.42), ID, server..."
+              placeholder="Search by threat, IP (e.g. 192.168.1.100), ID, asset..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-background-card border border-border focus:border-sentra-cyan rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sentra-cyan/20"
             />
           </div>
 
-          {/* Quick Stats Badges */}
-          <div className="flex items-center gap-2 overflow-x-auto text-xs">
-            <span className="text-slate-400 font-mono text-[11px]">Active Incidents:</span>
-            <span className="px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-semibold">
-              {alerts.filter(a => a.severity === 'critical' && a.status !== 'resolved').length} Critical
-            </span>
-            <span className="px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30 font-mono font-semibold">
-              {alerts.filter(a => a.severity === 'high' && a.status !== 'resolved').length} High
-            </span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
-              {alerts.filter(a => a.status === 'resolved').length} Resolved
-            </span>
+          {/* Quick Stats Badges & Run Detection Button */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              <span className="text-slate-400 font-mono text-[11px]">Pipeline Status:</span>
+              <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 font-mono font-semibold">
+                {alerts.filter(a => a.status === 'new').length} New
+              </span>
+              <span className="px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/30 font-mono font-semibold">
+                {alerts.filter(a => a.severity === 'critical' && a.status !== 'resolved' && a.status !== 'false_positive').length} Critical
+              </span>
+              <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono">
+                {alerts.filter(a => a.status === 'investigating').length} Investigating
+              </span>
+              <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono">
+                {alerts.filter(a => a.status === 'resolved').length} Resolved
+              </span>
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Play className="w-3.5 h-3.5 fill-current" />}
+              onClick={() => setIsRunModalOpen(true)}
+              className="bg-sentra-cyan hover:bg-sentra-cyan/90 text-slate-950 font-semibold shadow-sm ml-auto"
+            >
+              Run Threat Detection
+            </Button>
           </div>
         </div>
 
@@ -104,11 +127,12 @@ export const AlertTable: React.FC = () => {
           >
             <option value="all">All Threat Types</option>
             <option value="DDoS">DDoS</option>
-            <option value="Botnet C2 Beaconing">Botnet C2 Beaconing</option>
-            <option value="DNS Tunneling / DGA">DNS Tunneling / DGA</option>
-            <option value="Encrypted Traffic Anomaly">Encrypted Traffic Anomaly</option>
-            <option value="Reconnaissance / Port Scan">Reconnaissance / Port Scan</option>
-            <option value="Data Exfiltration">Data Exfiltration</option>
+            <option value="Port Scan">Port Scan</option>
+            <option value="Botnet">Botnet</option>
+            <option value="Infiltration">Infiltration</option>
+            <option value="Web Attack">Web Attack</option>
+            <option value="Brute Force">Brute Force</option>
+            <option value="Unknown Anomaly">Unknown Anomaly</option>
           </select>
 
           {/* Server */}
@@ -117,7 +141,7 @@ export const AlertTable: React.FC = () => {
             onChange={(e) => setSelectedServer(e.target.value)}
             className="bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
           >
-            <option value="all">All Assets / Servers</option>
+            <option value="all">All Monitored Assets</option>
             {servers.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -132,9 +156,11 @@ export const AlertTable: React.FC = () => {
             className="bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
           >
             <option value="all">All Statuses</option>
-            <option value="active">Active</option>
+            <option value="new">New (Unreviewed)</option>
+            <option value="acknowledged">Acknowledged</option>
             <option value="investigating">Investigating</option>
             <option value="resolved">Resolved</option>
+            <option value="false_positive">False Positive</option>
           </select>
 
           {/* Reset Action */}
@@ -186,10 +212,25 @@ export const AlertTable: React.FC = () => {
 
                     <td className="py-3.5 px-4 font-medium text-slate-200">
                       <div>
-                        <span className="font-semibold text-slate-100 group-hover:text-sentra-cyan transition-colors">
-                          {alert.threat}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-500 block">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-slate-100 group-hover:text-sentra-cyan transition-colors">
+                            {alert.threat}
+                          </span>
+                          {alert.occurrenceCount && alert.occurrenceCount > 1 ? (
+                            <span 
+                              className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30" 
+                              title={`Aggregated alert: seen ${alert.occurrenceCount} times in 24h`}
+                            >
+                              x{alert.occurrenceCount}
+                            </span>
+                          ) : null}
+                          {alert.detectionDecision && (
+                            <span className="text-[9px] font-mono uppercase px-1 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                              {alert.detectionDecision.replace('_', ' ')}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-500 block mt-0.5">
                           {alert.id}
                         </span>
                       </div>
@@ -214,11 +255,18 @@ export const AlertTable: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4 font-mono">
-                      <span className={`font-semibold ${
-                        alert.modelScore >= 90 ? 'text-rose-400' : 'text-amber-400'
-                      }`}>
-                        {alert.modelScore}%
-                      </span>
+                      <div>
+                        <span className={`font-semibold ${
+                          alert.modelScore >= 90 ? 'text-rose-400' : alert.modelScore >= 70 ? 'text-orange-400' : 'text-amber-400'
+                        }`}>
+                          {typeof alert.modelScore === 'number' ? `${alert.modelScore.toFixed(0)}%` : alert.modelScore}
+                        </span>
+                        {alert.detectionType === 'anomaly' && (
+                          <span className="block text-[9px] text-purple-400 font-mono">
+                            Anomaly Score: {alert.anomalyScore != null ? alert.anomalyScore.toFixed(2) : 'detected'}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-3.5 px-4 font-mono text-slate-400 text-[11px] whitespace-nowrap">
@@ -247,6 +295,12 @@ export const AlertTable: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Detection Execution Modal */}
+      <RunDetectionModal
+        isOpen={isRunModalOpen}
+        onClose={() => setIsRunModalOpen(false)}
+      />
     </div>
   );
 };

@@ -185,6 +185,42 @@ SENTRA SOC Console (React 19 + TypeScript + Flow Explorer + Telemetry Modal)
 - [x] **Automated Test Suite (`tests/test_ml_pipeline.py`):**
   - Unit and integration tests for label mapping, leakage-free preprocessing, Random Forest training, Isolation Forest anomaly scoring, artifact persistence, API endpoints, and inference.
 
+### Phase 6: Threat Detection, Alert Engine & Dashboard Integration (Completed)
+- [x] **End-to-End Threat Detection Pipeline:**
+  - Ingested directional flow telemetry $\to$ Feature extraction (`v1.0.0`) $\to$ Multi-model inference (Random Forest classifier + Isolation Forest anomaly detector) $\to$ Decision policy evaluation (`v1.0.0`) $\to$ Structured evidence generation $\to$ Deduplication & recurrence tracking $\to$ Alert persistence & SSE streaming.
+- [x] **Multi-Criteria Decision Policy Engine (`backend/app/detection/policy.py`):**
+  - Synthesizes supervised class probabilities with unsupervised isolation scores and flow rate facts.
+  - Policy outcomes: `likely_malicious`, `suspicious`, `anomalous`, `inconclusive`, `normal`.
+  - Severity triage model: Combines threat category, flow volume/rates (PPS/BPS), and monitored server criticality environment (`production`, `staging`, `development`, `dmz`).
+  - Model scores are explicitly kept distinct from severity triage labels.
+- [x] **Structured Evidence Generator (`backend/app/detection/evidence.py`):**
+  - Separates deterministic observed telemetry facts (5-tuple, packet/byte counts, duration, asymmetry ratio) from probabilistic model inferences (predicted class, class vote share, anomaly score) and behavioral indicators.
+  - Forensic integrity disclaimer: Explicitly avoids unwarranted real-world attacker identity attribution on unidirectional ingress.
+- [x] **Temporal Alert Deduplication Engine (`backend/app/detection/deduplication.py`):**
+  - Computes 32-character SHA-256 fingerprint over `(server_id, source_ip, destination_ip, protocol, threat_class)`.
+  - Re-observed attacks within a 24-hour temporal window increment `occurrence_count` and update `last_seen_at` without spamming analysts.
+- [x] **Alert Lifecycle State Machine & Audit Trail (`backend/app/detection/lifecycle.py`):**
+  - Valid transitions: `new` $\to$ `acknowledged` $\to$ `investigating` $\to$ `resolved` / `false_positive` $\to$ `new` (reopen).
+  - Persists full operator audit log in `alert_status_history` table (`previous_status`, `new_status`, `changed_by`, `note`, `timestamp`).
+- [x] **FastAPI Alert & Detection Endpoints:**
+  - `GET /api/alerts`: Multi-parameter filtered alerts (server, severity, threat, status, pagination)
+  - `GET /api/alerts/summary`: Real-time SOC operational statistics and attack distribution
+  - `GET /api/alerts/stream`: Server-Sent Events (SSE) streaming live alert broadcasts and status transitions
+  - `GET /api/alerts/{id}`: Detailed incident investigation with structured evidence and audit trail
+  - `PATCH /api/alerts/{id}/status`: Lifecycle transitions with operator audit logging
+  - `POST /api/detection/run`: Launch batch threat detection across imports, datasets, or flow IDs
+  - `GET /api/detection/jobs`: Detection job execution history and progress tracking
+  - `GET /api/detection/jobs/{id}`: Detection job status and metrics
+  - `GET /api/detection/results`: Per-flow detection decisions and policy rationales
+  - `GET /api/detection/health`: Detection engine subsystem health and model readiness
+- [x] **Frontend SOC Incident Management Integration:**
+  - Interactive **Alerts Table** with search, multi-factor filters, occurrence badges (`xN`), and anomaly indicators.
+  - **Run Threat Detection Modal**: Select server, import batch, or dataset with custom confidence thresholds to launch detection runs.
+  - **Incident Investigation Modal**: Full breakdown of Observed Network Facts, Model Inferences, Behavioral Indicators, Lifecycle Action Buttons (`Acknowledge`, `Investigate`, `Resolve`, `False Positive`, `Reopen`), and historical Audit Trail.
+  - Live SSE notification subscriber with automated toast alerts.
+- [x] **Automated Test Suite (`tests/test_detection_engine.py`):**
+  - 8 comprehensive test cases covering health endpoints, decision policy rules, facts vs. inferences separation, deduplication, lifecycle transitions, API endpoints, and end-to-end flow evaluation.
+
 ---
 
 ### Prerequisites

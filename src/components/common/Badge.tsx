@@ -41,6 +41,12 @@ export const Badge: React.FC<BadgeProps> = ({
     }
   } else if (status) {
     switch (status) {
+      case 'new':
+        styleClasses = 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30';
+        break;
+      case 'acknowledged':
+        styleClasses = 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30';
+        break;
       case 'active':
         styleClasses = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
         break;
@@ -49,6 +55,9 @@ export const Badge: React.FC<BadgeProps> = ({
         break;
       case 'resolved':
         styleClasses = 'bg-slate-700/40 text-slate-400 border-slate-600/40';
+        break;
+      case 'false_positive':
+        styleClasses = 'bg-slate-800 text-slate-400 border-slate-700';
         break;
       case 'paused':
         styleClasses = 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';

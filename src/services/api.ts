@@ -19,7 +19,9 @@ import { mockThreatCategoriesIntel, mockObservedIps } from '@/data/mockThreats';
 import { initialMockNotifications } from '@/data/mockNotifications';
 import { serversApi, CreateServerPayload, UpdateServerPayload } from './servers';
 
-// Simulated latency helper for remaining mock modules (Phase 3+)
+import { alertsApi, mapBackendAlertToThreatAlert } from './alerts';
+
+// Simulated latency helper for remaining mock modules
 const delay = (ms: number = 100) => new Promise(resolve => setTimeout(resolve, ms));
 
 let alertsStore: ThreatAlert[] = [...initialMockAlerts];
@@ -58,7 +60,7 @@ export const sentraApi = {
     return await serversApi.update(id, { status: nextStatus });
   },
 
-  // === Dashboard & KPIs (Server count pulled dynamically from real database) ===
+  // === Dashboard & KPIs (Server count and alert statistics pulled dynamically from PostgreSQL) ===
   async getDashboardMetrics(): Promise<KPIMetrics> {
     let serverCount = 0;
     try {
@@ -68,8 +70,16 @@ export const sentraApi = {
       serverCount = 0;
     }
 
-    const activeCount = alertsStore.filter(a => a.status === 'active').length;
-    const criticalCount = alertsStore.filter(a => a.status === 'active' && a.severity === 'critical').length;
+    let activeCount = 0;
+    let criticalCount = 0;
+    try {
+      const summary = await alertsApi.getAlertSummary();
+      activeCount = summary.active_alerts;
+      criticalCount = summary.critical_alerts;
+    } catch {
+      activeCount = alertsStore.filter(a => a.status === 'active' || a.status === 'new' || a.status === 'investigating').length;
+      criticalCount = alertsStore.filter(a => (a.status === 'active' || a.status === 'new') && a.severity === 'critical').length;
+    }
     
     return {
       ...mockKpiMetrics,
@@ -85,8 +95,24 @@ export const sentraApi = {
     };
   },
 
-  // === Demo Data Modules (Clearly marked, pending future backend ML/stream phases) ===
+  // === Threat Distribution (Pulled dynamically from PostgreSQL if available) ===
   async getThreatDistribution() {
+    try {
+      const summary = await alertsApi.getAlertSummary();
+      if (summary.total_alerts > 0) {
+        const colors = ['#f43f5e', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', '#10b981'];
+        let idx = 0;
+        return Object.entries(summary.by_threat_class).map(([cat, count]) => ({
+          category: cat as any,
+          count,
+          percentage: Math.round((count / summary.total_alerts) * 100),
+          color: colors[idx++ % colors.length],
+          trend: '+0%'
+        }));
+      }
+    } catch {
+      // Fallback
+    }
     await delay();
     return mockThreatDistribution;
   },
@@ -96,27 +122,48 @@ export const sentraApi = {
     return mockHourlyTraffic;
   },
 
-  // === Alerts Endpoints (Phase 3 Demo/Scaffold Data) ===
+  // === Alerts Endpoints (Connected to Phase 6 Threat Detection Backend) ===
   async getAlerts(): Promise<ThreatAlert[]> {
-    await delay();
+    try {
+      const servers = await serversApi.getAll().catch(() => []);
+      const serverNames = new Map(servers.map(s => [s.id, s.name]));
+
+      const res = await alertsApi.getAlerts({ page_size: 100 });
+      if (res.items && res.items.length > 0) {
+        return res.items.map(item =>
+          mapBackendAlertToThreatAlert(item, serverNames.get(String(item.server_id)) || '')
+        );
+      }
+    } catch (err) {
+      console.warn('Failed to load alerts from backend API, using fallback store:', err);
+    }
     return [...alertsStore];
   },
 
   async getAlertById(id: string): Promise<ThreatAlert | undefined> {
-    await delay();
-    return alertsStore.find(a => a.id === id);
+    try {
+      const backendAlert = await alertsApi.getAlertById(id);
+      return mapBackendAlertToThreatAlert(backendAlert);
+    } catch {
+      return alertsStore.find(a => a.id === id);
+    }
   },
 
   async updateAlertStatus(id: string, status: AlertStatus, note?: string): Promise<ThreatAlert | null> {
-    await delay();
-    const alert = alertsStore.find(a => a.id === id);
-    if (!alert) return null;
-    alert.status = status;
-    if (note) {
-      alert.notes = [...(alert.notes || []), note];
+    try {
+      const updated = await alertsApi.updateAlertStatus(id, status, note);
+      return mapBackendAlertToThreatAlert(updated);
+    } catch (err) {
+      console.warn(`Backend alert status update failed for #${id}, updating local store:`, err);
+      const alert = alertsStore.find(a => a.id === id);
+      if (!alert) return null;
+      alert.status = status;
+      if (note) {
+        alert.notes = [...(alert.notes || []), note];
+      }
+      alertsStore = [...alertsStore];
+      return { ...alert };
     }
-    alertsStore = [...alertsStore];
-    return { ...alert };
   },
 
   // === Traffic Analytics Endpoints (Phase 4 Demo Data) ===

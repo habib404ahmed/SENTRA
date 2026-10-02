@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { MonitoredServer, ThreatAlert, NotificationItem, AlertStatus } from '@/types';
 import { sentraApi } from '@/services/api';
-import { CreateServerPayload, UpdateServerPayload } from '@/services/servers';
+import { CreateServerPayload, UpdateServerPayload, API_BASE_URL } from '@/services/servers';
 
 export type PageId = 
   | 'overview' 
@@ -157,6 +157,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     refreshAllData();
+
+    // Establish near-real-time Server-Sent Events (SSE) connection
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource(`${API_BASE_URL}/api/alerts/stream`);
+
+      eventSource.addEventListener('new_alert', (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          const alertData = payload.data;
+          showToast(
+            `[LIVE DETECT] ${alertData.threat_class || 'Threat'} (${alertData.severity.toUpperCase()}) flagged from ${alertData.source_ip}`,
+            alertData.severity === 'critical' || alertData.severity === 'high' ? 'error' : 'warning'
+          );
+          // Refresh alerts list dynamically
+          sentraApi.getAlerts().then(setAlerts).catch(console.error);
+        } catch (err) {
+          console.error('SSE new_alert parse error', err);
+        }
+      });
+
+      eventSource.addEventListener('status_change', (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          const { alert_id, new_status } = payload.data;
+          setAlerts(prev =>
+            prev.map(a => a.id === String(alert_id) ? { ...a, status: new_status } : a)
+          );
+        } catch (err) {
+          console.error('SSE status_change parse error', err);
+        }
+      });
+
+      eventSource.onerror = (err) => {
+        // SSE automatically attempts reconnection per browser standard
+        console.debug('Alerts SSE stream reconnecting...', err);
+      };
+    } catch (err) {
+      console.warn('Could not establish SSE stream:', err);
+    }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
   }, []);
 
   const addServer = async (data: CreateServerPayload): Promise<boolean> => {

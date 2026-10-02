@@ -13,11 +13,13 @@ from app.routers import (
     features_router,
     datasets_router,
     ml_router,
+    detection_router,
 )
 from contextlib import asynccontextmanager
 from app.models.feature_job import FeatureJobModel
 from app.models.pcap_import import PcapImportModel
 from app.models.ml_training_job import MLTrainingJobModel
+from app.models.detection_job import DetectionJobModel
 
 
 @asynccontextmanager
@@ -42,8 +44,14 @@ async def lifespan(app: FastAPI):
         for ml_job in interrupted_ml_jobs:
             ml_job.status = "failed"
             ml_job.error_message = "ML training job interrupted by application restart."
+
+        # Recover interrupted detection jobs
+        interrupted_det_jobs = db.query(DetectionJobModel).filter(DetectionJobModel.status == "processing").all()
+        for det_job in interrupted_det_jobs:
+            det_job.status = "failed"
+            det_job.error_message = "Detection job interrupted by application restart."
         
-        if interrupted_imports or interrupted_jobs or interrupted_ml_jobs:
+        if interrupted_imports or interrupted_jobs or interrupted_ml_jobs or interrupted_det_jobs:
             db.commit()
     except Exception:
         db.rollback()
@@ -79,14 +87,15 @@ app.include_router(flows_router)
 app.include_router(features_router)
 app.include_router(datasets_router)
 app.include_router(ml_router)
+app.include_router(detection_router)
 
 
 @app.get("/", tags=["System"])
 def root():
     return {
         "service": "SENTRA Threat Defense API",
-        "phase": "Phase 5 (AI/ML Model Development and Threat Detection)",
-        "version": "0.5.0",
+        "phase": "Phase 6 (Threat Detection, Alert Engine, and Dashboard Integration)",
+        "version": "0.6.0",
         "status": "online",
         "docs": "/docs"
     }

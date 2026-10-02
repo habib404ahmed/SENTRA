@@ -99,3 +99,22 @@ class SentraThreatClassifier:
         preds = self.estimator.predict(X_scaled)
         probs = self.estimator.predict_proba(X_scaled)
         return preds, probs
+
+    def predict_single(self, feature_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Runs inference on a single feature dictionary.
+        """
+        row = {col: float(feature_dict.get(col, 0.0) or 0.0) for col in self.feature_names_}
+        df = pd.DataFrame([row])
+        preds, probs = self.predict(df)
+        pred_class = str(preds[0])
+        prob_row = probs[0]
+        max_idx = int(np.argmax(prob_row))
+        confidence = float(prob_row[max_idx])
+        class_probs = {cls: float(prob_row[i]) for i, cls in enumerate(self.classes_)}
+        return {
+            "predicted_class": pred_class,
+            "confidence": confidence,
+            "class_probabilities": class_probs
+        }
+

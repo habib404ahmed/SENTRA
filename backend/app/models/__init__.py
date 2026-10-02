@@ -1,6 +1,7 @@
 from app.database import Base
 from app.models.server import MonitoredServerModel
-from app.models.alert import AlertModel
+from app.models.alert import AlertModel, AlertStatusHistoryModel
+from app.models.detection_job import DetectionJobModel
 from app.models.pcap_import import PcapImportModel
 from app.models.traffic_flow import TrafficFlowModel
 from app.models.feature_job import FeatureJobModel
@@ -15,6 +16,8 @@ __all__ = [
     "Base",
     "MonitoredServerModel",
     "AlertModel",
+    "AlertStatusHistoryModel",
+    "DetectionJobModel",
     "PcapImportModel",
     "TrafficFlowModel",
     "FeatureJobModel",

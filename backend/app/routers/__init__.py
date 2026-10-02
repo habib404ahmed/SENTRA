@@ -5,6 +5,7 @@ from app.routers.flows import router as flows_router
 from app.routers.features import router as features_router
 from app.routers.datasets import router as datasets_router
 from app.routers.ml import router as ml_router
+from app.routers.detection import router as detection_router
 
 __all__ = [
     "servers_router",
@@ -14,4 +15,5 @@ __all__ = [
     "features_router",
     "datasets_router",
     "ml_router",
+    "detection_router",
 ]

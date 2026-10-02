@@ -1,6 +1,6 @@
 export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 
-export type AlertStatus = 'active' | 'investigating' | 'resolved';
+export type AlertStatus = 'new' | 'acknowledged' | 'investigating' | 'resolved' | 'false_positive' | 'active';
 
 export type ServerEnvironment = 'production' | 'staging' | 'development' | 'dmz';
 
@@ -18,7 +18,8 @@ export type ThreatCategory =
   | 'DNS Tunneling / DGA'
   | 'Encrypted Traffic Anomaly'
   | 'Reconnaissance / Port Scan'
-  | 'Data Exfiltration';
+  | 'Data Exfiltration'
+  | string;
 
 export interface MonitoredServer {
   id: string;
@@ -42,20 +43,60 @@ export interface MonitoredServer {
   };
 }
 
+export interface AlertHistoryItem {
+  id: number;
+  alert_id: number;
+  previous_status?: string | null;
+  previousStatus?: string | null;
+  new_status: string;
+  newStatus?: string;
+  changed_by: string;
+  changedBy?: string;
+  note?: string | null;
+  created_at: string;
+  changedAt?: string;
+}
+
 export interface ThreatAlert {
   id: string;
   threat: ThreatCategory;
+  threat_class?: string;
+  threatClass?: string;
+  detection_type?: string;
+  detectionType?: string;
+  detection_decision?: string;
+  detectionDecision?: string;
   severity: Severity;
   sourceIp: string;
   destinationIp: string;
   destinationPort: number;
-  protocol: 'TCP' | 'UDP' | 'ICMP' | 'DNS' | 'TLS';
+  protocol: 'TCP' | 'UDP' | 'ICMP' | 'DNS' | 'TLS' | string;
   serverId: string;
   serverName: string;
   modelScore: number; // e.g. 94 (%)
+  anomalyScore?: number | null;
   detectedAt: string;
   status: AlertStatus;
   evidence: string[];
+  structured_evidence?: Record<string, any>;
+  structuredEvidence?: Record<string, any>;
+  occurrence_count?: number;
+  occurrenceCount?: number;
+  first_seen_at?: string;
+  firstSeenAt?: string;
+  last_seen_at?: string;
+  lastSeenAt?: string;
+  model_version?: string;
+  modelVersion?: string;
+  feature_schema_version?: string;
+  featureSchemaVersion?: string;
+  detection_policy_version?: string;
+  detectionPolicyVersion?: string;
+  flow_id?: string;
+  flowId?: string;
+  import_id?: string;
+  importId?: string;
+  history?: AlertHistoryItem[];
   timeline: {
     time: string;
     event: string;
@@ -68,6 +109,33 @@ export interface ThreatAlert {
     flags: string;
     windowSize: number;
   };
+}
+
+export interface DetectionJob {
+  id: number;
+  import_id?: number | null;
+  dataset_id?: number | null;
+  classifier_model_id?: number | null;
+  anomaly_model_id?: number | null;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  policy_version: string;
+  total_flows: number;
+  analyzed_flows: number;
+  alerts_generated: number;
+  configuration: Record<string, any>;
+  error_message?: string | null;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface DetectionHealth {
+  status: string;
+  subsystem: string;
+  policy_version: string;
+  active_classifier?: Record<string, any> | null;
+  active_anomaly_detector?: Record<string, any> | null;
+  inference_ready: boolean;
 }
 
 export interface TrafficDataPoint {

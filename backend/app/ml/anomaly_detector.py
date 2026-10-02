@@ -111,3 +111,16 @@ class SentraAnomalyDetector:
         preds = self.estimator.predict(X_scaled)
         is_anomaly = (preds == -1)
         return is_anomaly, scores
+
+    def predict_single(self, feature_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Runs inference on a single feature dictionary.
+        """
+        row = {col: float(feature_dict.get(col, 0.0) or 0.0) for col in self.feature_names_}
+        df = pd.DataFrame([row])
+        is_anom, scores = self.predict(df)
+        return {
+            "is_anomaly": bool(is_anom[0]),
+            "anomaly_score": float(scores[0])
+        }
+
