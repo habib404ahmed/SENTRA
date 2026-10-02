@@ -78,22 +78,26 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="SENTRA Threat Defense API",
     description="Backend REST API for SENTRA real-time AI network threat detection, asset monitoring, unidirectional PCAP traffic ingestion, ML feature extraction, and AI/ML model training.",
-    version="0.5.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    version="0.6.0",
+    docs_url="/docs" if settings.DOCS_ENABLED else None,
+    redoc_url="/redoc" if settings.DOCS_ENABLED else None,
     lifespan=lifespan,
 )
 
 
-# Configure CORS - restricted to configured origins (e.g. React frontend)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configure CORS - allows specified domains, preview regex, and local dev loopback
+cors_kwargs = {
+    "allow_origins": settings.cors_origin_list,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+if settings.CORS_ORIGIN_REGEX:
+    cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
+elif not settings.is_production:
+    cors_kwargs["allow_origin_regex"] = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)
 
 # Register routers
 app.include_router(servers_router)

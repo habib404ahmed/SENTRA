@@ -1,0 +1,38 @@
+# Git & IDE
+.git
+.gitignore
+.vscode
+.idea
+
+# Dependencies & Environments
+node_modules
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+
+# Build artifacts
+dist
+build
+*.egg-info
+
+# Environment variables & secrets
+.env
+.env*.local
+*.env
+backend/.env
+
+# Large datasets, raw PCAPs, and temporary logs
+*.pcap
+*.pcapng
+*.cap
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+backend/logs/*
+!backend/logs/.gitkeep
+
+# Test & coverage caches
+.pytest_cache
+.coverage
+htmlcov

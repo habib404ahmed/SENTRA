@@ -1,0 +1,83 @@
+services:
+  # ---------------------------------------------------
+  # PostgreSQL Database Service
+  # ---------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: sentra-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentra123}
+      POSTGRES_DB: ${POSTGRES_DB:-sentra}
+    volumes:
+      - sentra_pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sentra}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sentra-net
+
+  # ---------------------------------------------------
+  # SENTRA FastAPI Backend Service
+  # ---------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sentra-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-sentra123}@db:5432/${POSTGRES_DB:-sentra}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:80,http://localhost:3000}
+      PORT: 8000
+      HOST: 0.0.0.0
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DOCS_ENABLED: ${DOCS_ENABLED:-true}
+    volumes:
+      - sentra_storage:/app/storage
+      - sentra_logs:/app/logs
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - sentra-net
+
+  # ---------------------------------------------------
+  # SENTRA React SOC Console (Frontend)
+  # ---------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    container_name: sentra-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - sentra-net
+
+volumes:
+  sentra_pgdata:
+  sentra_storage:
+  sentra_logs:
+
+networks:
+  sentra-net:
+    driver: bridge

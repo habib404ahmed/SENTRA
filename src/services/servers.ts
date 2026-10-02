@@ -1,8 +1,7 @@
 import { MonitoredServer, ServerEnvironment, TrafficSourceType } from '@/types';
+import { API_BASE_URL, IS_LOCAL_API, isLocalhostApi, buildApiUrl } from '@/config/api';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL !== undefined && import.meta.env.VITE_API_BASE_URL !== '')
-  ? import.meta.env.VITE_API_BASE_URL
-  : 'http://localhost:8000';
+export { API_BASE_URL, IS_LOCAL_API, isLocalhostApi, buildApiUrl };
 
 export type ApiErrorKind = 
   | 'backend_offline' 
@@ -110,15 +109,20 @@ export class ApiError extends Error {
  * Core fetch wrapper with resilient network error classification
  */
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  const url = endpoint.startsWith('http') ? endpoint : buildApiUrl(endpoint);
   let response: Response;
 
   try {
     response = await fetch(url, options);
   } catch (err: any) {
-    // Network error: backend process offline, DNS failed, or connection refused
+    const targetDesc = API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'configured API origin');
+    const isLocal = isLocalhostApi(API_BASE_URL);
+    const guidance = isLocal
+      ? "Ensure local FastAPI backend is active ('sentra-service.ps1 start' or 'uvicorn app.main:app --port 8000')."
+      : `Verify the hosted SENTRA API service at ${targetDesc} is running and allows CORS requests from this domain.`;
+
     throw new ApiError(
-      `FastAPI backend service is offline or unreachable at ${API_BASE_URL}. Ensure the backend server is running.`,
+      `FastAPI backend service is offline or unreachable at ${targetDesc}. ${guidance}`,
       0,
       'backend_offline',
       err?.message
@@ -188,8 +192,9 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
   const t0 = performance.now();
   const c1 = new AbortController();
   const t1Id = setTimeout(() => c1.abort(), 3000);
+  const healthUrl = buildApiUrl('/api/health');
   try {
-    const healthRes = await fetch(`${API_BASE_URL}/api/health`, {
+    const healthRes = await fetch(healthUrl, {
       headers: { 'Accept': 'application/json' },
       signal: c1.signal,
     });
@@ -204,9 +209,13 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
 
     result.backendOnline = true;
   } catch (err: any) {
+    const targetDesc = API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'configured origin');
+    const isLocal = isLocalhostApi(API_BASE_URL);
     result.errorKind = 'backend_offline';
-    result.statusMessage = `Backend API server is offline or unreachable at ${API_BASE_URL}.`;
-    result.technicalDetails = `Browser network fetch failed (${err?.name === 'AbortError' ? 'Connection timed out' : err?.message || 'Connection refused'}). Start backend using '.\\sentra-service.ps1 start' or automatic Windows startup.`;
+    result.statusMessage = `Backend API server is offline or unreachable at ${targetDesc}.`;
+    result.technicalDetails = isLocal
+      ? `Local network fetch failed (${err?.name === 'AbortError' ? 'Connection timed out' : err?.message || 'Connection refused'}). Start backend using '.\\sentra-service.ps1 start' or automatic Windows startup.`
+      : `Remote network fetch to ${targetDesc} failed (${err?.name === 'AbortError' ? 'Connection timed out' : err?.message || 'Network error'}). Check cloud deployment status, container logs, and CORS origin configuration.`;
     return result;
   } finally {
     clearTimeout(t1Id);
@@ -216,8 +225,9 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
   const t1 = performance.now();
   const c2 = new AbortController();
   const t2Id = setTimeout(() => c2.abort(), 3500);
+  const dbHealthUrl = buildApiUrl('/api/health/db');
   try {
-    const dbRes = await fetch(`${API_BASE_URL}/api/health/db`, {
+    const dbRes = await fetch(dbHealthUrl, {
       headers: { 'Accept': 'application/json' },
       signal: c2.signal,
     });

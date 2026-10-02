@@ -21,7 +21,7 @@ from app.models import Base
 config = context.config
 
 # Dynamically set sqlalchemy.url from app settings to keep passwords out of alembic.ini
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.sync_database_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

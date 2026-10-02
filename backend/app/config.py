@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
@@ -13,9 +13,14 @@ class Settings(BaseSettings):
         default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000",
         description="Comma-separated allowed CORS origins"
     )
-    HOST: str = "0.0.0.0"
-    PORT: int = 8000
-    ENVIRONMENT: str = "development"
+    CORS_ORIGIN_REGEX: Optional[str] = Field(
+        default=None,
+        description="Optional regex pattern to match allowed CORS origins (e.g. for preview domains)"
+    )
+    HOST: str = Field(default="0.0.0.0", description="Host address for FastAPI server")
+    PORT: int = Field(default=8000, description="Port for FastAPI server (auto-detected on PaaS)")
+    ENVIRONMENT: str = Field(default="development", description="Environment: development, staging, or production")
+    DOCS_ENABLED: bool = Field(default=True, description="Enable /docs and /redoc API documentation")
 
     # PCAP Ingestion Storage & Controls
     UPLOAD_DIR: str = Field(
@@ -38,6 +43,24 @@ class Settings(BaseSettings):
         default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "storage", "models"),
         description="Filesystem path for trained ML model artifacts (.joblib)"
     )
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() in ("production", "prod")
+
+    @property
+    def sync_database_url(self) -> str:
+        """
+        Normalize DATABASE_URL for SQLAlchemy 2.x and psycopg v3.
+        Cloud providers (Render, Neon, Supabase, Railway, AWS RDS) often provide
+        'postgres://...' or 'postgresql://...' URLs.
+        """
+        url = self.DATABASE_URL.strip()
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+psycopg://"):
+            url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+        return url
 
     @property
     def cors_origin_list(self) -> List[str]:

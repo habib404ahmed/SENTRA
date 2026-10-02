@@ -506,6 +506,27 @@ To have the React dashboard also start automatically on Windows boot, you can ei
 
 ---
 
+## 🌐 Hosted Cloud Deployment (Replacing Localhost)
+
+To deploy SENTRA so that the web dashboard does **not** rely on `localhost` or your personal computer, follow the complete cloud architecture documented in [DEPLOYMENT.md](file:///c:/Users/HABIB/Videos/SENTRA/DEPLOYMENT.md):
+
+1. **Provision Managed PostgreSQL:** (e.g. [Neon](https://neon.tech), [Supabase](https://supabase.com), [Render](https://render.com)).
+2. **Deploy FastAPI Backend:** (e.g. Render, Railway, AWS ECS).
+   - Set `DATABASE_URL` with SSL (`?sslmode=require`).
+   - Run `python migrate.py` for automated schema deployment.
+   - Start via `python run.py`.
+3. **Deploy React Frontend:** (e.g. Vercel, Netlify, Cloudflare Pages).
+   - Set environment variable `VITE_API_BASE_URL=https://your-backend.onrender.com`.
+   - Build with `npm run build`.
+4. **Deploy with Docker Compose (Single VM / VPS):**
+   ```bash
+   docker compose up -d --build
+   ```
+
+*See the step-by-step walkthrough in [DEPLOYMENT.md](file:///c:/Users/HABIB/Videos/SENTRA/DEPLOYMENT.md).*
+
+---
+
 ## 🔮 Future Roadmap (Post-Hackathon Extensions)
 
 - **Hardware Diode Transceiver Offload:** Zero-copy kernel bypass (DPDK / eBPF) for line-rate 10Gbps+ simplex fiber taps.
