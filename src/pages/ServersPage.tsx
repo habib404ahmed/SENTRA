@@ -1,7 +1,6 @@
 import React from 'react';
 import { ServerTable } from '@/components/servers/ServerTable';
 import { ServerDetailModal } from '@/components/servers/ServerDetailModal';
-import { AddServerModal } from '@/components/servers/AddServerModal';
 
 export const ServersPage: React.FC = () => {
   return (
@@ -20,7 +19,6 @@ export const ServersPage: React.FC = () => {
       <ServerTable />
 
       {/* Modals */}
-      <AddServerModal />
       <ServerDetailModal />
     </div>
   );

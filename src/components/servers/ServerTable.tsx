@@ -223,6 +223,8 @@ export const ServerTable: React.FC = () => {
             size="sm"
             icon={<Plus className="w-3.5 h-3.5" />}
             onClick={() => setIsAddServerOpen(true)}
+            aria-label="Add Server"
+            data-testid="table-add-server-btn"
           >
             Add Server
           </Button>
@@ -315,6 +317,7 @@ export const ServerTable: React.FC = () => {
                           icon={<Plus className="w-3.5 h-3.5" />}
                           onClick={() => setIsAddServerOpen(true)}
                           className="mt-2"
+                          aria-label="Register First Server"
                         >
                           Register First Server
                         </Button>
@@ -464,6 +467,7 @@ export const ServerTable: React.FC = () => {
                   icon={<Plus className="w-3.5 h-3.5" />}
                   onClick={() => setIsAddServerOpen(true)}
                   className="mt-2"
+                  aria-label="Register First Server"
                 >
                   Register First Server
                 </Button>

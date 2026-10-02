@@ -15,6 +15,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { IngestionPage } from '@/pages/IngestionPage';
 import { FeaturesPage } from '@/pages/FeaturesPage';
 import { ModelsPage } from '@/pages/ModelsPage';
+import { AddServerModal } from '@/components/servers/AddServerModal';
 
 export const AppContent: React.FC = () => {
   const { activePage, isAuthenticated } = useApp();
@@ -81,6 +82,7 @@ export const AppContent: React.FC = () => {
 
       {/* Global Modals & Notifications */}
       <SearchModal />
+      <AddServerModal />
       <Toast />
     </div>
   );

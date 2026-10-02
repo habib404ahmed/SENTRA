@@ -5,7 +5,7 @@ import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Button } from '@/components/common/Button';
 import { ServerEnvironment, TrafficSourceType } from '@/types';
-import { Shield, Info } from 'lucide-react';
+import { Shield, Info, AlertCircle } from 'lucide-react';
 
 export const AddServerModal: React.FC = () => {
   const { isAddServerOpen, setIsAddServerOpen, addServer } = useApp();
@@ -20,6 +20,7 @@ export const AddServerModal: React.FC = () => {
   const [description, setDescription] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Validate IPv4 format
@@ -28,8 +29,17 @@ export const AddServerModal: React.FC = () => {
     return ipv4Regex.test(ip.trim());
   };
 
+  const handleClose = () => {
+    if (isSubmitting) return;
+    setErrors({});
+    setSubmitError(null);
+    setIsAddServerOpen(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) {
@@ -50,9 +60,10 @@ export const AddServerModal: React.FC = () => {
     }
 
     setErrors({});
+    setSubmitError(null);
     setIsSubmitting(true);
 
-    const success = await addServer({
+    const result = await addServer({
       name: name.trim(),
       hostname: hostname.trim(),
       ipAddress: ipAddress.trim(),
@@ -64,25 +75,29 @@ export const AddServerModal: React.FC = () => {
     });
 
     setIsSubmitting(false);
-    if (success) {
+    if (result.success) {
       // Reset form
       setName('');
       setHostname('');
       setIpAddress('');
       setDescription('');
+      setErrors({});
+      setSubmitError(null);
       setIsAddServerOpen(false);
+    } else {
+      setSubmitError(result.error || 'Failed to register server in database.');
     }
   };
 
   return (
     <Modal
       isOpen={isAddServerOpen}
-      onClose={() => setIsAddServerOpen(false)}
+      onClose={handleClose}
       title="Register Monitored Network Asset"
       subtitle="Configure an authorized host for passive unidirectional flow monitoring"
       maxWidth="xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" data-testid="add-server-form">
         {/* Notice on Unidirectional Ingestion */}
         <div className="p-3 rounded-lg bg-sentra-cyan/10 border border-sentra-cyan/25 flex items-start gap-2.5 text-xs text-slate-300">
           <Info className="w-4 h-4 text-sentra-cyan shrink-0 mt-0.5" />
@@ -91,12 +106,30 @@ export const AddServerModal: React.FC = () => {
           </div>
         </div>
 
+        {/* Backend Error Banner */}
+        {submitError && (
+          <div 
+            role="alert"
+            className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300 animate-in fade-in duration-200"
+          >
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              <span className="font-semibold text-rose-300">Registration Error:</span> {submitError}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Server Name *"
             placeholder="e.g. Inventory Master DB"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            disabled={isSubmitting}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (submitError) setSubmitError(null);
+              if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+            }}
             error={errors.name}
           />
 
@@ -104,7 +137,12 @@ export const AddServerModal: React.FC = () => {
             label="IP Address *"
             placeholder="e.g. 10.0.0.60"
             value={ipAddress}
-            onChange={(e) => setIpAddress(e.target.value)}
+            disabled={isSubmitting}
+            onChange={(e) => {
+              setIpAddress(e.target.value);
+              if (submitError) setSubmitError(null);
+              if (errors.ipAddress) setErrors(prev => ({ ...prev, ipAddress: '' }));
+            }}
             error={errors.ipAddress}
           />
         </div>
@@ -114,13 +152,19 @@ export const AddServerModal: React.FC = () => {
             label="Hostname *"
             placeholder="e.g. db-master-01.internal.corp"
             value={hostname}
-            onChange={(e) => setHostname(e.target.value)}
+            disabled={isSubmitting}
+            onChange={(e) => {
+              setHostname(e.target.value);
+              if (submitError) setSubmitError(null);
+              if (errors.hostname) setErrors(prev => ({ ...prev, hostname: '' }));
+            }}
             error={errors.hostname}
           />
 
           <Select
             label="Server Type"
             value={serverType}
+            disabled={isSubmitting}
             onChange={(e) => setServerType(e.target.value)}
             options={[
               { value: 'Web Application Server (Nginx / Node)', label: 'Web Application Server (Nginx / Node)' },
@@ -138,6 +182,7 @@ export const AddServerModal: React.FC = () => {
           <Select
             label="Environment"
             value={environment}
+            disabled={isSubmitting}
             onChange={(e) => setEnvironment(e.target.value as ServerEnvironment)}
             options={[
               { value: 'production', label: 'Production' },
@@ -151,6 +196,7 @@ export const AddServerModal: React.FC = () => {
           <Select
             label="Traffic Source"
             value={trafficSource}
+            disabled={isSubmitting}
             onChange={(e) => setTrafficSource(e.target.value as TrafficSourceType)}
             options={[
               { value: 'Flow Telemetry', label: 'Flow Telemetry' },
@@ -166,6 +212,7 @@ export const AddServerModal: React.FC = () => {
           <Select
             label="Monitoring Status"
             value={monitoringStatus}
+            disabled={isSubmitting}
             onChange={(e) => setMonitoringStatus(e.target.value as 'active' | 'paused')}
             options={[
               { value: 'active', label: 'Active Monitoring' },
@@ -181,9 +228,10 @@ export const AddServerModal: React.FC = () => {
           <textarea
             rows={2}
             value={description}
+            disabled={isSubmitting}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Brief notes on asset criticality, network segment, or telemetry feed location..."
-            className="w-full bg-background-card border border-border focus:border-sentra-cyan rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sentra-cyan/20 transition-colors"
+            className="w-full bg-background-card border border-border focus:border-sentra-cyan rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sentra-cyan/20 transition-colors disabled:opacity-50"
           />
         </div>
 
@@ -191,7 +239,8 @@ export const AddServerModal: React.FC = () => {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => setIsAddServerOpen(false)}
+            onClick={handleClose}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
@@ -199,6 +248,7 @@ export const AddServerModal: React.FC = () => {
             type="submit"
             variant="primary"
             isLoading={isSubmitting}
+            disabled={isSubmitting}
             icon={<Shield className="w-4 h-4" />}
           >
             Add Server

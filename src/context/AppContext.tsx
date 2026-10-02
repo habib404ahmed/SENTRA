@@ -76,7 +76,7 @@ interface AppContextType {
   };
 
   // State mutation actions
-  addServer: (data: CreateServerPayload) => Promise<boolean>;
+  addServer: (data: CreateServerPayload) => Promise<{ success: boolean; error?: string; server?: MonitoredServer }>;
   updateServer: (id: string, data: UpdateServerPayload) => Promise<boolean>;
   deleteServer: (id: string) => Promise<boolean>;
   toggleServerMonitoring: (id: string) => Promise<void>;
@@ -391,17 +391,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   }, []);
 
-  const addServer = async (data: CreateServerPayload): Promise<boolean> => {
+  const addServer = async (data: CreateServerPayload): Promise<{ success: boolean; error?: string; server?: MonitoredServer }> => {
     try {
       const created = await sentraApi.createServer(data);
-      // Refresh list to keep in sync with PostgreSQL
+      // Refresh list to keep in sync with PostgreSQL and update dashboard counters
       await refreshServers();
       showToast(`Asset "${created.name}" registered successfully in PostgreSQL.`, 'success');
-      return true;
+      return { success: true, server: created };
     } catch (err: any) {
       const msg = err?.message || 'Failed to register server';
       showToast(msg, 'error');
-      return false;
+      return { success: false, error: msg };
     }
   };
 

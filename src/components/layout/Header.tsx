@@ -177,7 +177,13 @@ export const Header: React.FC = () => {
           variant="primary"
           size="sm"
           icon={<Plus className="w-3.5 h-3.5" />}
-          onClick={() => setIsAddServerOpen(true)}
+          onClick={() => {
+            setActivePage('servers');
+            setIsAddServerOpen(true);
+          }}
+          aria-label="Add Server"
+          title="Register a new monitored server"
+          data-testid="global-add-server-btn"
         >
           <span className="hidden sm:inline">Add Server</span>
         </Button>
