@@ -15,7 +15,8 @@ import {
   Lock,
   LogOut,
   ExternalLink,
-  UploadCloud
+  UploadCloud,
+  Sliders
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -58,6 +59,13 @@ export const Sidebar: React.FC = () => {
       icon: <UploadCloud className="w-4 h-4" />,
       badge: 'PCAP',
       badgeColor: 'bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/30',
+    },
+    {
+      id: 'features',
+      label: 'Feature Engineering',
+      icon: <Sliders className="w-4 h-4" />,
+      badge: 'ML Prep',
+      badgeColor: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
     },
     {
       id: 'alerts',

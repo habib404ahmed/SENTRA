@@ -13,6 +13,7 @@ import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { IngestionPage } from '@/pages/IngestionPage';
+import { FeaturesPage } from '@/pages/FeaturesPage';
 
 export const AppContent: React.FC = () => {
   const { activePage, isAuthenticated } = useApp();
@@ -29,6 +30,8 @@ export const AppContent: React.FC = () => {
         return <ServersPage />;
       case 'ingestion':
         return <IngestionPage />;
+      case 'features':
+        return <FeaturesPage />;
       case 'alerts':
         return <AlertsPage />;
       case 'analytics':

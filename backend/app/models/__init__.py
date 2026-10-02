@@ -3,11 +3,17 @@ from app.models.server import MonitoredServerModel
 from app.models.alert import AlertModel
 from app.models.pcap_import import PcapImportModel
 from app.models.traffic_flow import TrafficFlowModel
+from app.models.feature_job import FeatureJobModel
+from app.models.flow_feature import FlowFeatureModel
+from app.models.feature_dataset import FeatureDatasetModel
 
 __all__ = [
     "Base",
     "MonitoredServerModel",
     "AlertModel",
     "PcapImportModel",
-    "TrafficFlowModel"
+    "TrafficFlowModel",
+    "FeatureJobModel",
+    "FlowFeatureModel",
+    "FeatureDatasetModel",
 ]

@@ -4,16 +4,55 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.config import settings
-from app.database import get_db
-from app.routers import servers_router, alerts_router, ingestion_router, flows_router
+from app.database import get_db, SessionLocal
+from app.routers import (
+    servers_router,
+    alerts_router,
+    ingestion_router,
+    flows_router,
+    features_router,
+    datasets_router,
+)
+from contextlib import asynccontextmanager
+from app.models.feature_job import FeatureJobModel
+from app.models.pcap_import import PcapImportModel
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Fail gracefully if server was terminated during active processing."""
+    db: Session = SessionLocal()
+    try:
+        # Recover interrupted imports
+        interrupted_imports = db.query(PcapImportModel).filter(PcapImportModel.status == "processing").all()
+        for imp in interrupted_imports:
+            imp.status = "failed"
+            imp.error_message = "Processing interrupted by application restart."
+        
+        # Recover interrupted feature jobs
+        interrupted_jobs = db.query(FeatureJobModel).filter(FeatureJobModel.status == "processing").all()
+        for job in interrupted_jobs:
+            job.status = "failed"
+            job.error_message = "Feature extraction interrupted by application restart."
+        
+        if interrupted_imports or interrupted_jobs:
+            db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
+    yield
+
 
 app = FastAPI(
     title="SENTRA Threat Defense API",
-    description="Backend REST API for SENTRA real-time AI network threat detection, asset monitoring, and unidirectional PCAP traffic ingestion.",
-    version="0.3.0",
+    description="Backend REST API for SENTRA real-time AI network threat detection, asset monitoring, unidirectional PCAP traffic ingestion, and ML feature extraction.",
+    version="0.4.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
+
 
 # Configure CORS - restricted to configured origins (e.g. React frontend)
 app.add_middleware(
@@ -29,13 +68,16 @@ app.include_router(servers_router)
 app.include_router(alerts_router)
 app.include_router(ingestion_router)
 app.include_router(flows_router)
+app.include_router(features_router)
+app.include_router(datasets_router)
 
 
 @app.get("/", tags=["System"])
 def root():
     return {
         "service": "SENTRA Threat Defense API",
-        "phase": "Phase 3 (Network Traffic Ingestion & Directional Flow Processing)",
+        "phase": "Phase 4 (Feature Extraction and Dataset Preparation)",
+        "version": "0.4.0",
         "status": "online",
         "docs": "/docs"
     }

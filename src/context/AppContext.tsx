@@ -7,6 +7,7 @@ export type PageId =
   | 'overview' 
   | 'servers' 
   | 'ingestion'
+  | 'features'
   | 'alerts' 
   | 'analytics' 
   | 'intelligence' 

@@ -95,6 +95,54 @@ SENTRA SOC Console (React 19 + TypeScript + Flow Explorer + Telemetry Modal)
 - [x] **Automated Test Suite:**
   - End-to-end tests covering upload validation, empty file rejection, invalid magic bytes, directional flow separation, and API pagination.
 
+### Phase 4: Feature Extraction and Dataset Preparation (Completed)
+- [x] **Modular Feature Engineering Package (`backend/app/features/`):**
+  - **Data Cleaning & Quality Reporting (`cleaning.py`):**
+    - Cleans raw directional flows, imputes safe fallbacks, filters corrupt entries (negative packet counts, excessive clock skews) without discarding genuine anomalous attack flows (e.g. single-packet port scans or SYN floods).
+    - Produces audit-grade `DataQualityReport` tracking total input, valid, invalid, duplicate, excluded records, and remediation actions.
+  - **Flow-Level Statistical Extraction (`flow_features.py`):**
+    - 19 transport-level metrics including zero-duration safe rate calculations (`packets_per_second`, `bytes_per_second`), average packet size, normalized port addresses (`[0, 1]`), ephemeral source flag, well-known destination flag, IANA protocol mapping (TCP=6, UDP=17, ICMP=1), TCP control flag counts and ratios (`syn_ratio`, `ack_ratio`, `rst_ratio`).
+  - **Leakage-Free Retrospective Behavioral Windowing (`behavioral_features.py`):**
+    - Calculates time-windowed behavioral metrics (`[t - W, t]`) using strictly backward-looking historical state queues:
+      - `src_unique_dst_count`: Unique destination IPs contacted by source in window
+      - `src_unique_dst_port_count`: Unique destination ports targeted by source in window
+      - `dst_unique_src_count`: Unique source IPs contacting destination in window
+      - `src_fan_out_ratio`: Ratio of unique destinations to total source connections
+      - `repeated_connection_count`: Prior matching connections to same `(src_ip, dst_ip, dst_port)`
+      - `avg_connection_interval`: Mean elapsed seconds between successive connections from source
+    - **No Lookahead Bias:** Mathematically guarantees observations occurring after time $t$ are never utilized.
+  - **DNS & TLS Transport Metadata (`dns_features.py`, `tls_features.py`):**
+    - `is_dns_service`, `dns_query_len_estimate` (estimated L3/L4 payload length).
+    - `is_tls_service`, `encrypted_flow_byte_ratio` (encapsulation efficiency relative to Ethernet MTU).
+    - Never decrypts payloads; metadata alone does not imply malicious intent.
+  - **Versioned Feature Schema (`v1.0.0` in `schemas.py` & `validation.py`):**
+    - Master mathematical registry of 29 features with explicit data types, calculation formulas, source fields, and missing-value imputation policies.
+    - Validates feature vectors against strict bounds and guarantees zero NaN/Inf contamination.
+  - **Dataset Generation & Identifier Separation (`dataset_export.py`):**
+    - Strictly isolates audit identifiers (IP addresses, MACs, flow IDs, server IDs, timestamps) from pure ML-ready numerical feature matrices to prevent target leakage and model bias.
+    - Produces both **Unlabeled ML-Ready Datasets** (pure numerical matrices) and **Full Analyzed Datasets** (with audit columns) in both **CSV** and binary **Apache Parquet** (`pyarrow`) formats with SHA-256 verification.
+- [x] **PostgreSQL Schema & Alembic Migrations:**
+  - `feature_jobs`: Tracking extraction lifecycle (`queued`, `processing`, `completed`, `failed`), schema version, input/valid/invalid flow counts, and JSONB `quality_report`.
+  - `flow_features`: High-performance JSONB storage of extracted feature dimensions per flow.
+  - `feature_datasets`: Tracking generated CSV and Parquet files, row/column dimensions, and SHA-256 digests.
+- [x] **REST APIs:**
+  - `POST /api/features/extract`: Queue background feature extraction for an imported capture with configurable window duration.
+  - `GET /api/features/jobs`: List extraction jobs and execution states.
+  - `GET /api/features/jobs/{id}`: Detailed state and audit-grade quality report.
+  - `GET /api/features`: Paginated flow feature query engine.
+  - `GET /api/features/schema`: Active `v1.0.0` feature schema definitions.
+  - `GET /api/datasets`: List generated dataset artifacts.
+  - `GET /api/datasets/{id}/download`: Secure file download (CSV/Parquet) with path traversal security guards.
+- [x] **Frontend UI Integration:**
+  - Dedicated **Feature Engineering** page accessible via sidebar.
+  - **Feature Extraction Launcher:** Modal allowing operators to select completed PCAP imports and tune behavioral retrospective window (60s, 300s, 600s).
+  - **Extraction Jobs Table:** Displays real-time statuses with 3s auto-polling, flow counts, and instant audit inspection.
+  - **Quality Audit Modal:** Visualizes total inputs, duplicate pruning, corrupt exclusions by reason, and missing value imputation logs.
+  - **Generated Datasets Table:** Displays CSV and Parquet files with dimensions, file size, SHA-256 digests, and one-click download buttons.
+  - **Feature Schema Explorer:** Searchable, scope-filterable table detailing all 29 feature definitions, calculation methods, and missing-value policies.
+- [x] **Automated Test Suite (`backend/tests/`):**
+  - 12 comprehensive unit and integration tests covering flow rates, zero-duration flows, data cleaning, behavioral windowing, schema validation, end-to-end pipeline, and API endpoints.
+
 ---
 
 ## 💻 Local Setup Guide

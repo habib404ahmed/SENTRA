@@ -27,6 +27,12 @@ class Settings(BaseSettings):
         description="Maximum allowed upload file size in bytes"
     )
 
+    # Feature Extraction & Dataset Export Storage
+    DATASET_DIR: str = Field(
+        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "storage", "datasets"),
+        description="Filesystem path for generated feature datasets (CSV, Parquet)"
+    )
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
@@ -40,5 +46,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Ensure uploads directory exists securely outside web roots
+# Ensure uploads and datasets directory exist securely outside web roots
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+os.makedirs(settings.DATASET_DIR, exist_ok=True)

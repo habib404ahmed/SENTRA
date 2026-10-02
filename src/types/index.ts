@@ -211,3 +211,92 @@ export interface TrafficFlowList {
   limit: number;
 }
 
+export type FeatureJobStatus = 'queued' | 'processing' | 'completed' | 'failed';
+
+export interface DataQualityReport {
+  total_input_records: number;
+  valid_records: number;
+  invalid_records: number;
+  duplicate_records: number;
+  records_excluded: number;
+  missing_value_counts: Record<string, number>;
+  invalid_value_counts: Record<string, number>;
+  exclusion_reasons: Record<string, number>;
+  remediation_actions: string[];
+}
+
+export interface FeatureJob {
+  id: number;
+  import_id?: number | null;
+  server_id?: number | null;
+  status: FeatureJobStatus;
+  schema_version: string;
+  input_flows: number;
+  valid_flows: number;
+  invalid_flows: number;
+  generated_features: number;
+  quality_report?: DataQualityReport | null;
+  error_message?: string | null;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface FeatureJobList {
+  total: number;
+  items: FeatureJob[];
+}
+
+export interface FeatureDefinition {
+  name: string;
+  data_type: string;
+  description: string;
+  source_field: string;
+  calculation_method: string;
+  missing_value_behavior: string;
+  feature_scope: string;
+  is_model_feature: boolean;
+}
+
+export interface FeatureSchemaMetadata {
+  version: string;
+  description: string;
+  total_features: number;
+  model_feature_count: number;
+  features: FeatureDefinition[];
+}
+
+export interface FlowFeatureRecord {
+  id: number;
+  job_id: number;
+  flow_id: number;
+  schema_version: string;
+  feature_values: Record<string, any>;
+  created_at: string;
+}
+
+export interface FlowFeatureList {
+  total: number;
+  page: number;
+  page_size: number;
+  items: FlowFeatureRecord[];
+}
+
+export interface FeatureDataset {
+  id: number;
+  job_id: number;
+  name: string;
+  format: 'csv' | 'parquet';
+  dataset_type: 'unlabeled_ml_ready' | 'full_analyzed';
+  file_size: number;
+  row_count: number;
+  column_count: number;
+  sha256_hash?: string | null;
+  created_at: string;
+}
+
+export interface FeatureDatasetList {
+  total: number;
+  items: FeatureDataset[];
+}
+
