@@ -196,20 +196,20 @@ export const ModelsPage: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="soc-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded bg-background border border-sentra-cyan/40 text-sentra-cyan shadow-[0_0_12px_rgba(0,229,255,0.2)]">
+            <div className="p-2 rounded bg-sentra-purple/10 border border-sentra-purple/30 text-sentra-purple">
               <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xs sm:text-sm font-mono font-bold tracking-widest text-text uppercase flex items-center gap-2">
-                AI / ML THREAT DETECTION ENGINE
-                <span className="text-[9px] px-2 py-0.5 rounded font-mono font-bold bg-sentra-purple/20 text-sentra-purple border border-sentra-purple/40">
+              <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                AI / ML Threat Detection Engine
+                <span className="text-[9px] px-2 py-0.5 rounded font-mono font-semibold bg-sentra-purple/15 text-sentra-purple border border-sentra-purple/30">
                   PHASE 5
                 </span>
-              </h1>
-              <p className="text-[11px] font-mono text-text-muted mt-0.5">
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
                 Supervised Multi-Class Threat Classification & Unsupervised Anomaly Scoring for Unidirectional IP Flows
               </p>
             </div>
@@ -265,60 +265,52 @@ export const ModelsPage: React.FC = () => {
 
       {/* Tactical Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
+        <div className="soc-card p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
-              Registered Models
-            </span>
+            <span className="text-xs text-slate-400">Registered Models</span>
             <Cpu className="w-4 h-4 text-sentra-cyan" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-text">{models.length}</span>
-            <span className="text-[10px] font-mono text-sentra-green font-bold">({trainedModelCount} evaluated)</span>
+            <span className="text-2xl font-bold text-slate-100">{models.length}</span>
+            <span className="text-xs text-sentra-green font-semibold">({trainedModelCount} evaluated)</span>
           </div>
-          <p className="text-[10px] font-mono text-text-muted mt-1">Random Forest & Isolation Forest</p>
+          <p className="text-[10px] text-slate-500 font-mono mt-1">Random Forest & Isolation Forest</p>
         </div>
 
-        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
+        <div className="soc-card p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
-              Active Training Jobs
-            </span>
+            <span className="text-xs text-slate-400">Active Training Jobs</span>
             <Zap className="w-4 h-4 text-sentra-amber" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-text">{activeJobCount}</span>
-            <span className="text-[10px] font-mono text-text-muted">/ {jobs.length} total run</span>
+            <span className="text-2xl font-bold text-slate-100">{activeJobCount}</span>
+            <span className="text-xs text-slate-400">/ {jobs.length} total</span>
           </div>
-          <p className="text-[10px] font-mono text-text-muted mt-1">Non-blocking background workers</p>
+          <p className="text-[10px] text-slate-500 font-mono mt-1">Non-blocking background workers</p>
         </div>
 
-        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
+        <div className="soc-card p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
-              Available Datasets
-            </span>
+            <span className="text-xs text-slate-400">Available Datasets</span>
             <Database className="w-4 h-4 text-sentra-green" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-text">{datasets.length}</span>
-            <span className="text-[10px] font-mono text-text-muted">registered</span>
+            <span className="text-2xl font-bold text-slate-100">{datasets.length}</span>
+            <span className="text-xs text-slate-400">registered</span>
           </div>
-          <p className="text-[10px] font-mono text-text-muted mt-1">SENTRA v1.0.0 schema verified</p>
+          <p className="text-[10px] text-slate-500 font-mono mt-1">SENTRA v1.0.0 schema verified</p>
         </div>
 
-        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
+        <div className="soc-card p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
-              Threat Classes
-            </span>
+            <span className="text-xs text-slate-400">Threat Classes</span>
             <ShieldCheck className="w-4 h-4 text-sentra-cyan" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-text">5</span>
-            <span className="text-[10px] font-mono text-sentra-cyan font-bold">multi-class</span>
+            <span className="text-2xl font-bold text-slate-100">5</span>
+            <span className="text-xs text-sentra-cyan font-semibold">multi-class</span>
           </div>
-          <p className="text-[10px] font-mono text-text-muted mt-1">Normal, DDoS, Recon, DNS Tun, Exfil</p>
+          <p className="text-[10px] text-slate-500 font-mono mt-1">Normal, DDoS, Recon, DNS Tun, Exfil</p>
         </div>
       </div>
 
@@ -418,8 +410,8 @@ export const ModelsPage: React.FC = () => {
         <div className="space-y-4">
           {/* Model Switcher Dropdown */}
           {models.length > 1 && (
-            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center justify-between p-4 rounded soc-card">
+              <span className="text-xs font-semibold text-slate-400">
                 Inspect Model Evaluation Report:
               </span>
               <div className="flex items-center gap-2">
@@ -429,7 +421,7 @@ export const ModelsPage: React.FC = () => {
                     const found = models.find((m) => m.id === parseInt(e.target.value));
                     if (found) setSelectedModelForEval(found);
                   }}
-                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                  className="bg-background-card border border-border rounded px-3 py-1.5 text-xs font-mono text-slate-100 focus:outline-none focus:border-sentra-cyan"
                 >
                   {models.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -438,13 +430,14 @@ export const ModelsPage: React.FC = () => {
                   ))}
                 </select>
                 {selectedModelForEval && (
-                  <button
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => handleOpenInference(selectedModelForEval)}
-                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition-colors"
+                    icon={<Play className="w-3.5 h-3.5" />}
                   >
-                    <Play className="w-3.5 h-3.5" />
                     Test Inference
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -458,7 +451,7 @@ export const ModelsPage: React.FC = () => {
               onClose={() => setActiveTab('models')}
             />
           ) : (
-            <div className="p-8 text-center text-slate-400 bg-slate-900 border border-slate-800 rounded-2xl">
+            <div className="p-8 text-center text-slate-400 soc-card">
               No model selected or available for evaluation. Train a model first.
             </div>
           )}

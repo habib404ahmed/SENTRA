@@ -8,8 +8,6 @@ import {
   Sliders,
   CheckCircle,
   AlertCircle,
-  HelpCircle,
-  ShieldAlert
 } from 'lucide-react';
 import {
   FeatureJob,
@@ -19,6 +17,7 @@ import {
 } from '../types';
 import { featuresApi } from '../services/features';
 import { ingestionApi } from '../services/ingestion';
+import { Button } from '@/components/common/Button';
 
 import { JobHistoryTable } from '../components/features/JobHistoryTable';
 import { DatasetsTable } from '../components/features/DatasetsTable';
@@ -121,152 +120,150 @@ export const FeaturesPage: React.FC = () => {
     }
   };
 
+  const activeJobCount = jobs.filter((j) => j.status === 'processing' || j.status === 'queued').length;
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Top Banner & Title */}
+    <div className="space-y-5">
+      {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-              <Sliders className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white tracking-wide">
-                Feature Engineering & Dataset Preparation
-              </h1>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Mathematical flow cleaning, retrospective behavioral window aggregation, and leak-free dataset generation.
-              </p>
-            </div>
-          </div>
+          <h2 className="text-xl font-bold text-slate-100 font-display flex items-center gap-2.5">
+            <Sliders className="w-5 h-5 text-sentra-cyan" />
+            Feature Engineering & Dataset Preparation
+          </h2>
+          <p className="text-xs text-slate-400 mt-1">
+            Mathematical flow cleaning, retrospective behavioral window aggregation, and leak-free dataset generation.
+          </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => {
-              setRefreshing(true);
-              fetchData();
-            }}
-            className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-xl transition-all"
-            title="Refresh pipeline status"
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setRefreshing(true); fetchData(); }}
+            disabled={refreshing || loading}
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />}
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
-          </button>
-
-          <button
+            Refresh
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setIsStartModalOpen(true)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 flex items-center space-x-2 transition-all"
+            icon={<Play className="w-3.5 h-3.5 fill-current" />}
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Start Feature Extraction</span>
-          </button>
+            Start Extraction
+          </Button>
         </div>
       </div>
 
-      {/* Global Notification Banner */}
+      {/* Notification Banner */}
       {notification && (
         <div
-          className={`p-3 rounded-xl border flex items-center justify-between text-xs animate-fade-in ${
+          className={`p-3.5 rounded border flex items-center justify-between text-xs ${
             notification.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+              ? 'bg-sentra-green/10 border-sentra-green/30 text-sentra-green'
+              : 'bg-sentra-danger/10 border-sentra-danger/30 text-sentra-danger'
           }`}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2.5">
             {notification.type === 'success' ? (
-              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
             )}
             <span>{notification.message}</span>
           </div>
           <button
             onClick={() => setNotification(null)}
-            className="text-slate-400 hover:text-white font-bold ml-4"
+            className="text-xs uppercase tracking-wider hover:underline opacity-80 ml-4"
           >
-            ×
+            Dismiss
           </button>
         </div>
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span className="text-xs font-medium text-slate-400">Total Pipeline Jobs</span>
-          <p className="text-xl font-bold text-white mt-1">{jobs.length}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="soc-card p-4">
+          <span className="text-xs text-slate-400">Total Pipeline Jobs</span>
+          <p className="text-2xl font-bold text-slate-100 mt-1.5">{jobs.length}</p>
           <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">Audit tracked</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span className="text-xs font-medium text-slate-400">Feature Dimensions</span>
-          <p className="text-xl font-bold text-indigo-400 mt-1">{schema?.total_features || 29}</p>
+        <div className="soc-card p-4">
+          <span className="text-xs text-slate-400">Feature Dimensions</span>
+          <p className="text-2xl font-bold text-sentra-cyan mt-1.5">{schema?.total_features || 29}</p>
           <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">
             Schema {schema?.version || 'v1.0.0'}
           </span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span className="text-xs font-medium text-slate-400">Generated Datasets</span>
-          <p className="text-xl font-bold text-purple-400 mt-1">{datasets.length}</p>
+        <div className="soc-card p-4">
+          <span className="text-xs text-slate-400">Generated Datasets</span>
+          <p className="text-2xl font-bold text-sentra-purple mt-1.5">{datasets.length}</p>
           <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">CSV & Parquet</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span className="text-xs font-medium text-slate-400">Pipeline State</span>
-          <div className="flex items-center space-x-2 mt-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-sm font-semibold text-emerald-400">Ready for Extraction</span>
+        <div className="soc-card p-4">
+          <span className="text-xs text-slate-400">Pipeline State</span>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className={`w-2 h-2 rounded-full ${activeJobCount > 0 ? 'bg-sentra-amber animate-pulse' : 'bg-sentra-green'}`} />
+            <span className={`text-sm font-semibold ${activeJobCount > 0 ? 'text-sentra-amber' : 'text-sentra-green'}`}>
+              {activeJobCount > 0 ? `${activeJobCount} Active` : 'Ready'}
+            </span>
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">No label leakage</span>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-slate-800 space-x-6">
+      <div className="border-b border-border flex items-center gap-1">
         <button
           onClick={() => setActiveTab('jobs')}
-          className={`pb-3 text-xs font-semibold flex items-center space-x-2 transition-all relative ${
-            activeTab === 'jobs' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative ${
+            activeTab === 'jobs'
+              ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
+              : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
           }`}
         >
-          <Layers className="w-4 h-4" />
-          <span>Extraction Jobs</span>
-          {activeTab === 'jobs' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />
+          <Layers className="w-3.5 h-3.5" />
+          Extraction Jobs
+          {activeJobCount > 0 && (
+            <span className="px-1.5 py-0.5 rounded text-[9px] bg-sentra-amber/20 text-sentra-amber border border-sentra-amber/40 font-bold animate-pulse">
+              {activeJobCount}
+            </span>
           )}
         </button>
 
         <button
           onClick={() => setActiveTab('datasets')}
-          className={`pb-3 text-xs font-semibold flex items-center space-x-2 transition-all relative ${
-            activeTab === 'datasets' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative ${
+            activeTab === 'datasets'
+              ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
+              : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
           }`}
         >
-          <FileSpreadsheet className="w-4 h-4" />
-          <span>Generated Datasets</span>
-          <span className="px-1.5 py-0.2 bg-slate-800 text-slate-400 rounded text-[10px]">
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          Generated Datasets
+          <span className="px-1.5 py-0.5 bg-background-card text-slate-400 rounded text-[10px] border border-border">
             {datasets.length}
           </span>
-          {activeTab === 'datasets' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />
-          )}
         </button>
 
         <button
           onClick={() => setActiveTab('schema')}
-          className={`pb-3 text-xs font-semibold flex items-center space-x-2 transition-all relative ${
-            activeTab === 'schema' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative ${
+            activeTab === 'schema'
+              ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
+              : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
           }`}
         >
-          <Database className="w-4 h-4" />
-          <span>Feature Schema</span>
-          <span className="px-1.5 py-0.2 bg-indigo-500/10 text-indigo-400 rounded text-[10px]">
+          <Database className="w-3.5 h-3.5" />
+          Feature Schema
+          <span className="px-1.5 py-0.5 bg-sentra-cyan/10 text-sentra-cyan rounded text-[10px] border border-sentra-cyan/30">
             {schema?.version || 'v1.0.0'}
           </span>
-          {activeTab === 'schema' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />
-          )}
         </button>
       </div>
 
