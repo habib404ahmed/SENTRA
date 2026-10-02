@@ -141,6 +141,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const autoRetryTimeoutRef = useRef<any>(null);
   const countdownIntervalRef = useRef<any>(null);
   const isRecoveringRef = useRef(false);
+  const lastErrorToastRef = useRef<string>('');
+
+  // Maximum number of automatic reconnection attempts before stopping
+  const MAX_AUTO_RECONNECT_ATTEMPTS = 5;
 
   const clearAutoRetryTimers = useCallback(() => {
     if (autoRetryTimeoutRef.current) {
@@ -159,8 +163,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     clearAutoRetryTimers();
     if (isRecoveringRef.current) return;
 
-    const backoffSchedule = [3, 5, 8, 12, 15];
     const attempt = retryAttemptRef.current;
+
+    // Stop retrying after MAX_AUTO_RECONNECT_ATTEMPTS — prevents infinite loop
+    if (attempt >= MAX_AUTO_RECONNECT_ATTEMPTS) {
+      setIsAutoReconnecting(false);
+      setAutoReconnectCountdown(0);
+      return;
+    }
+
+    // Exponential backoff: 5s, 10s, 20s, 30s, 60s
+    const backoffSchedule = [5, 10, 20, 30, 60];
     const delaySec = backoffSchedule[Math.min(attempt, backoffSchedule.length - 1)];
 
     setIsAutoReconnecting(true);
@@ -191,7 +204,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setServers(fetched);
             setServersError(null);
             setServersDiagnostic(diag);
-            showToast('FastAPI backend and PostgreSQL reconnected successfully!', 'success');
+            showToast('Backend reconnected and data loaded.', 'success');
           } catch (fetchErr: any) {
             diag.errorKind = fetchErr instanceof ApiError ? fetchErr.kind : (fetchErr?.status === 404 ? 'endpoint_missing' : 'server_error');
             diag.statusMessage = fetchErr?.message || 'Failed to fetch servers';
@@ -205,6 +218,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           setServersDiagnostic(diag);
           setServersError(diag.statusMessage);
           retryAttemptRef.current += 1;
+          const nextAttempt = retryAttemptRef.current;
+          // Only show toast on final failure, not every retry
+          if (nextAttempt >= MAX_AUTO_RECONNECT_ATTEMPTS) {
+            showToast('Backend unreachable. Click the status indicator to retry manually.', 'error');
+          }
           scheduleAutoReconnect();
         }
       } catch {
@@ -244,10 +262,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       setServersDiagnostic(diag);
-      const msg = err?.message || diag.statusMessage || 'Could not connect to FastAPI / PostgreSQL backend.';
+      const msg = err?.message || diag.statusMessage || 'Could not connect to backend.';
       setServersError(msg);
-      showToast(msg, 'error');
-      // Trigger automatic recovery countdown with backoff
+      // Only show error toast once per unique message to avoid duplicate flooding
+      if (msg !== lastErrorToastRef.current) {
+        lastErrorToastRef.current = msg;
+        showToast(msg, 'error');
+      }
+      // Trigger automatic recovery countdown with exponential backoff
       scheduleAutoReconnect();
     } finally {
       setServersLoading(false);
@@ -256,31 +278,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const retryConnection = async (): Promise<ConnectionDiagnosticResult> => {
     clearAutoRetryTimers();
+    // Reset dedup and attempt refs for user-initiated manual retry
+    retryAttemptRef.current = 0;
+    lastErrorToastRef.current = '';
     setServersLoading(true);
-    showToast('Diagnosing backend & database connection...', 'info');
+    showToast('Checking backend connection...', 'info');
     try {
       const diag = await checkSystemDiagnostics();
       if (diag.backendOnline && diag.databaseOnline) {
-        showToast('Connectivity verified! Loading monitored servers from PostgreSQL...', 'success');
         try {
           const fetched = await sentraApi.getServers();
           setServers(fetched);
           setServersError(null);
-          retryAttemptRef.current = 0;
           setServersDiagnostic(diag);
+          showToast('Connected! Servers loaded successfully.', 'success');
         } catch (fetchErr: any) {
           diag.errorKind = fetchErr instanceof ApiError ? fetchErr.kind : (fetchErr?.status === 404 ? 'endpoint_missing' : 'server_error');
           diag.statusMessage = fetchErr?.message || 'Failed to fetch servers';
           diag.technicalDetails = fetchErr?.details ? JSON.stringify(fetchErr.details) : undefined;
           setServersDiagnostic(diag);
           setServersError(diag.statusMessage);
+          showToast(diag.statusMessage, 'error');
           scheduleAutoReconnect();
         }
       } else {
         setServersDiagnostic(diag);
         setServersError(diag.statusMessage);
-        showToast(`Diagnostic check: ${diag.statusMessage}`, 'error');
-        // Continue auto-reconnecting in the background
+        showToast(diag.statusMessage, 'error');
         scheduleAutoReconnect();
       }
       return diag;
@@ -290,7 +314,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         healthRouteValid: false,
         databaseOnline: false,
         errorKind: 'unknown',
-        statusMessage: err?.message || 'Diagnostic connection check failed.',
+        statusMessage: err?.message || 'Connection check failed.',
         timestamp: new Date().toISOString(),
       };
       setServersDiagnostic(fallback);
@@ -303,18 +327,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  // Immediate retry on window focus or network reconnect when in error state
+  // Retry on network reconnect (online event only — not focus, to avoid retrying on every tab switch)
   useEffect(() => {
-    const handleWake = () => {
+    const handleOnline = () => {
       if (serversError) {
+        // Reset attempt counter so we get fresh backoff on network recovery
+        retryAttemptRef.current = 0;
+        lastErrorToastRef.current = '';
         retryConnection();
       }
     };
-    window.addEventListener('online', handleWake);
-    window.addEventListener('focus', handleWake);
+    window.addEventListener('online', handleOnline);
     return () => {
-      window.removeEventListener('online', handleWake);
-      window.removeEventListener('focus', handleWake);
+      window.removeEventListener('online', handleOnline);
       clearAutoRetryTimers();
     };
   }, [serversError, clearAutoRetryTimers]);

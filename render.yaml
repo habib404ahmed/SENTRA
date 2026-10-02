@@ -35,10 +35,12 @@ services:
         value: production
       - key: DOCS_ENABLED
         value: "true"
-      - key: CORS_ORIGIN_REGEX
-        value: "^https://.*\\.onrender\\.com$"
+      # Explicitly allow the deployed frontend origin and localhost for dev
       - key: CORS_ORIGINS
-        value: "http://localhost:5173,http://localhost:3000"
+        value: "https://sentra-frontend-5u9x.onrender.com,http://localhost:5173,http://localhost:3000"
+      # Regex allows any *.onrender.com subdomain (covers preview deploys)
+      - key: CORS_ORIGIN_REGEX
+        value: "^https://[a-z0-9-]+\\.onrender\\.com$"
       - key: WEB_CONCURRENCY
         value: "1"
 
@@ -55,8 +57,8 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      # Full HTTPS URL of the backend service — must include scheme and full hostname
+      # NOTE: fromService.property:host only returns the bare hostname without scheme.
+      # Use the explicit hardcoded URL to avoid normalizeApiUrl() stripping .onrender.com
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: sentra-backend
-          property: host
+        value: "https://sentra-backend-zy7w.onrender.com"
