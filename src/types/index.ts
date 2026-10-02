@@ -153,3 +153,61 @@ export interface KPIMetrics {
     note: string;
   };
 }
+
+export type PcapImportStatus = 'queued' | 'processing' | 'completed' | 'failed';
+
+export interface PcapImport {
+  id: number;
+  server_id?: number | null;
+  original_filename: string;
+  stored_filename: string;
+  file_size: number;
+  status: PcapImportStatus;
+  total_packets: number;
+  total_flows: number;
+  error_message?: string | null;
+  uploaded_at: string;
+  processing_started_at?: string | null;
+  processing_completed_at?: string | null;
+  server_name?: string | null;
+}
+
+export interface PcapImportList {
+  items: PcapImport[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface TrafficFlow {
+  id: number;
+  import_id: number;
+  server_id?: number | null;
+  source_ip: string;
+  destination_ip: string;
+  source_port?: number | null;
+  destination_port?: number | null;
+  protocol: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  duration: number;
+  packet_count: number;
+  byte_count: number;
+  average_packet_size: number;
+  packets_per_second: number;
+  bytes_per_second: number;
+  average_interarrival_time: number;
+  tcp_syn_count: number;
+  tcp_ack_count: number;
+  tcp_fin_count: number;
+  tcp_rst_count: number;
+  server_name?: string | null;
+}
+
+export interface TrafficFlowList {
+  items: TrafficFlow[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+

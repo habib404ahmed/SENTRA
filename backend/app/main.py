@@ -5,12 +5,12 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database import get_db
-from app.routers import servers_router, alerts_router
+from app.routers import servers_router, alerts_router, ingestion_router, flows_router
 
 app = FastAPI(
     title="SENTRA Threat Defense API",
-    description="Backend REST API for SENTRA real-time AI network threat detection and asset monitoring.",
-    version="0.2.0",
+    description="Backend REST API for SENTRA real-time AI network threat detection, asset monitoring, and unidirectional PCAP traffic ingestion.",
+    version="0.3.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -27,13 +27,15 @@ app.add_middleware(
 # Register routers
 app.include_router(servers_router)
 app.include_router(alerts_router)
+app.include_router(ingestion_router)
+app.include_router(flows_router)
 
 
 @app.get("/", tags=["System"])
 def root():
     return {
         "service": "SENTRA Threat Defense API",
-        "phase": "Phase 2 (FastAPI + PostgreSQL + SQLAlchemy)",
+        "phase": "Phase 3 (Network Traffic Ingestion & Directional Flow Processing)",
         "status": "online",
         "docs": "/docs"
     }

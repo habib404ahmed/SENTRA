@@ -17,14 +17,28 @@ class Settings(BaseSettings):
     PORT: int = 8000
     ENVIRONMENT: str = "development"
 
+    # PCAP Ingestion Storage & Controls
+    UPLOAD_DIR: str = Field(
+        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "storage", "uploads"),
+        description="Filesystem path for secure PCAP upload storage"
+    )
+    MAX_UPLOAD_SIZE_BYTES: int = Field(
+        default=100 * 1024 * 1024, # 100 MB limit
+        description="Maximum allowed upload file size in bytes"
+    )
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
-    class Config:
-        env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
-        env_file_encoding = "utf-8"
-        extra = "ignore"
+    model_config = {
+        "env_file": os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
+        "env_file_encoding": "utf-8",
+        "extra": "ignore"
+    }
 
 
 settings = Settings()
+
+# Ensure uploads directory exists securely outside web roots
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

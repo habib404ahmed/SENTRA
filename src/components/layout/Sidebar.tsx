@@ -14,7 +14,8 @@ import {
   Radio, 
   Lock,
   LogOut,
-  ExternalLink
+  ExternalLink,
+  UploadCloud
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -50,6 +51,13 @@ export const Sidebar: React.FC = () => {
       icon: <Server className="w-4 h-4" />,
       badge: activeServersCount,
       badgeColor: 'bg-slate-800 text-slate-300',
+    },
+    {
+      id: 'ingestion',
+      label: 'Traffic Ingestion',
+      icon: <UploadCloud className="w-4 h-4" />,
+      badge: 'PCAP',
+      badgeColor: 'bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/30',
     },
     {
       id: 'alerts',

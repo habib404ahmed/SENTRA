@@ -30,6 +30,13 @@ venv/
 ENV/
 env/
 
+# Uploaded capture files and storage
+backend/storage/
+*.pcap
+*.pcapng
+*.cap
+
+
 # Logs
 logs
 *.log

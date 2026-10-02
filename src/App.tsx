@@ -12,6 +12,7 @@ import { IntelligencePage } from '@/pages/IntelligencePage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { IngestionPage } from '@/pages/IngestionPage';
 
 export const AppContent: React.FC = () => {
   const { activePage, isAuthenticated } = useApp();
@@ -26,6 +27,8 @@ export const AppContent: React.FC = () => {
         return <OverviewPage />;
       case 'servers':
         return <ServersPage />;
+      case 'ingestion':
+        return <IngestionPage />;
       case 'alerts':
         return <AlertsPage />;
       case 'analytics':
@@ -61,7 +64,7 @@ export const AppContent: React.FC = () => {
             <span>•</span>
             <span>SIH 2026 Problem Statement 26145</span>
             <span>•</span>
-            <span className="font-mono text-sentra-cyan/80">Phase 1 UI/UX Prototype</span>
+            <span className="font-mono text-sentra-cyan/80">Phase 3: PCAP Ingestion & Flow Processing</span>
           </div>
 
           <div className="font-mono text-[11px] text-slate-500">

@@ -19,9 +19,33 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { Badge } from '@/components/common/Badge';
+import { ingestionApi } from '@/services/ingestion';
+import { flowsApi } from '@/services/flows';
 
 export const OverviewPage: React.FC = () => {
   const { servers, alerts } = useApp();
+
+  const [ingestionStats, setIngestionStats] = React.useState<{
+    totalFlows: number;
+    totalPackets: number;
+    totalImports: number;
+  } | null>(null);
+
+  React.useEffect(() => {
+    Promise.all([
+      ingestionApi.getImports({ limit: 100 }).catch(() => null),
+      flowsApi.getFlows({ limit: 1 }).catch(() => null)
+    ]).then(([importsRes, flowsRes]) => {
+      if (importsRes && flowsRes) {
+        const pkts = importsRes.items.reduce((sum, item) => sum + (item.total_packets || 0), 0);
+        setIngestionStats({
+          totalImports: importsRes.total,
+          totalPackets: pkts,
+          totalFlows: flowsRes.total
+        });
+      }
+    });
+  }, []);
 
   const activeThreats = alerts.filter(a => a.status === 'active');
   const criticalThreats = activeThreats.filter(a => a.severity === 'critical');
@@ -65,10 +89,10 @@ export const OverviewPage: React.FC = () => {
         <StatCard
           title="Monitored Servers"
           value={servers.length}
-          trendText="+2 assets this week"
+          trendText={`${servers.length} active assets`}
           trendDirection="up"
           icon={<Server className="w-5 h-5" />}
-          badgeText="Active Tap"
+          badgeText="PostgreSQL"
           badgeVariant="low"
         />
 
@@ -86,12 +110,12 @@ export const OverviewPage: React.FC = () => {
         {/* KPI 3: Traffic Analyzed */}
         <StatCard
           title="Traffic Analyzed"
-          value={mockKpiMetrics.trafficAnalyzed.value}
-          trendText="Last 24 hours"
+          value={ingestionStats && ingestionStats.totalFlows > 0 ? `${ingestionStats.totalFlows} Flows` : mockKpiMetrics.trafficAnalyzed.value}
+          trendText={ingestionStats && ingestionStats.totalFlows > 0 ? `${ingestionStats.totalPackets.toLocaleString()} Ingested Packets` : 'Simulated Ingress'}
           trendDirection="neutral"
           icon={<Activity className="w-5 h-5 text-sentra-cyan" />}
-          badgeText="Ingress Only"
-          badgeVariant="info"
+          badgeText={ingestionStats && ingestionStats.totalFlows > 0 ? 'Imported PCAP' : 'Demo Data'}
+          badgeVariant={ingestionStats && ingestionStats.totalFlows > 0 ? 'low' : 'info'}
         />
 
         {/* KPI 4: Threats Detected */}

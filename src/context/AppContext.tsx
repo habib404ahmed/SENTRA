@@ -6,6 +6,7 @@ import { CreateServerPayload, UpdateServerPayload } from '@/services/servers';
 export type PageId = 
   | 'overview' 
   | 'servers' 
+  | 'ingestion'
   | 'alerts' 
   | 'analytics' 
   | 'intelligence' 
