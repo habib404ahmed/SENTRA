@@ -45,8 +45,9 @@ services:
   # ----------------------------------------------------------------------------
   # 3. React + TypeScript SOC Console (Static Site)
   # ----------------------------------------------------------------------------
-  - type: static
+  - type: web
     name: sentra-frontend
+    runtime: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     routes:
