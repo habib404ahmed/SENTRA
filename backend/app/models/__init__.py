@@ -6,6 +6,10 @@ from app.models.traffic_flow import TrafficFlowModel
 from app.models.feature_job import FeatureJobModel
 from app.models.flow_feature import FlowFeatureModel
 from app.models.feature_dataset import FeatureDatasetModel
+from app.models.ml_dataset import MLDatasetModel
+from app.models.ml_training_job import MLTrainingJobModel
+from app.models.ml_model import MLModelModel
+from app.models.ml_evaluation import MLEvaluationModel
 
 __all__ = [
     "Base",
@@ -16,4 +20,8 @@ __all__ = [
     "FeatureJobModel",
     "FlowFeatureModel",
     "FeatureDatasetModel",
+    "MLDatasetModel",
+    "MLTrainingJobModel",
+    "MLModelModel",
+    "MLEvaluationModel",
 ]

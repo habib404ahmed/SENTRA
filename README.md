@@ -147,6 +147,46 @@ SENTRA SOC Console (React 19 + TypeScript + Flow Explorer + Telemetry Modal)
 
 ## 💻 Local Setup Guide
 
+### Phase 5: AI/ML Model Development and Threat Detection (Completed)
+- [x] **Modular Machine Learning Package (`backend/app/ml/`):**
+  - **Label Mapping (`label_mapping.py`):** Canonical mapping resolving public benchmark datasets (CIC-IDS2017, CSE-CIC-IDS2018, UNSW-NB15) to SENTRA target threat classes (`Normal`, `DDoS`, `Reconnaissance`, `DNS Tunneling`, `Data Exfiltration`).
+  - **Dataset Loader & Benchmark Generator (`dataset_loader.py`):** Strict feature schema validation conforming to SENTRA v1.0.0 (30 numerical features). Includes synthetic benchmark generation for reproducible offline testing.
+  - **Leakage-Free Preprocessing (`preprocessing.py`):** Robust scaler fitting strictly on training partitions; test partitions remain completely isolated until final evaluation.
+  - **Random Forest Threat Classifier (`classifier.py`):** Supervised multi-class ensemble with configurable estimators, max depth, class balancing, reproducible random seed, and Gini impurity (MDI) feature importance extraction.
+  - **Isolation Forest Anomaly Detector (`anomaly_detector.py`):** Unsupervised tree isolation with configurable contamination parameter and anomaly score percentile calibration.
+  - **Comprehensive Evaluator (`evaluation.py`):** Empirical, factual metric computation (Accuracy, Macro/Weighted Precision, Recall, F1, Per-Class breakdowns, Confusion Matrix, Normal False-Positive Rate, ROC-AUC).
+  - **Safe Model Registry & Artifact Manager (`model_registry.py`):** Versioned serialization with `joblib`, path traversal protection, metadata tracking, and model storage outside public directories (`backend/storage/models/`).
+  - **Real-Time Prediction Interface (`prediction.py`):** Robust flow inference with schema validation, non-finite handling, missing feature imputation, class probability distributions, and anomaly isolation scores.
+- [x] **Database Schema & Migrations:**
+  - `ml_datasets`: Tracks registered dataset files, sources, schema versions, class distributions, and record counts.
+  - `ml_training_jobs`: Asynchronous job queue recording dataset references, model types, hyperparameters, status (`queued`, `training`, `completed`, `failed`), and timing.
+  - `ml_models`: Model registry storing algorithm details, version strings, feature names, hyperparameter configurations, and artifact paths.
+  - `ml_evaluations`: Persists empirical evaluation metrics, confusion matrices, test-set compositions, and feature importance rankings.
+- [x] **REST APIs (`/api/ml/...`):**
+  - `POST /api/ml/datasets`: Register or generate feature dataset
+  - `GET /api/ml/datasets`: List registered datasets
+  - `GET /api/ml/datasets/{id}`: Detailed dataset metadata
+  - `POST /api/ml/training-jobs`: Launch non-blocking background model training job
+  - `GET /api/ml/training-jobs`: List training job history
+  - `GET /api/ml/training-jobs/{id}`: Inspect job status and execution logs
+  - `GET /api/ml/models`: List registered model artifacts
+  - `GET /api/ml/models/{id}`: Model metadata and parameters
+  - `GET /api/ml/models/{id}/evaluation`: Empirical evaluation report
+  - `GET /api/ml/feature-importance/{id}`: Gini MDI feature importance ranking
+  - `POST /api/ml/predict/{id}`: Live flow prediction endpoint
+  - `GET /api/ml/health`: ML engine subsystem health and storage status
+- [x] **Interactive Frontend SOC Integration:**
+  - Dedicated **AI/ML Models** page in sidebar navigation.
+  - **Model Registry Table:** List trained artifacts, algorithms, versions, status, and direct actions.
+  - **Training History Table:** Real-time background job tracking with auto-polling every 3s.
+  - **Dataset Registry:** Browse registered datasets or generate canonical benchmark datasets.
+  - **Model Evaluation Dashboard:** View factual metrics (Accuracy, Macro F1, Recall, Confusion Matrix, Score Distribution, Feature Importance).
+  - **Inference Playground Modal:** Test trained models interactively against pre-configured traffic signatures or custom feature vectors.
+- [x] **Automated Test Suite (`tests/test_ml_pipeline.py`):**
+  - Unit and integration tests for label mapping, leakage-free preprocessing, Random Forest training, Isolation Forest anomaly scoring, artifact persistence, API endpoints, and inference.
+
+---
+
 ### Prerequisites
 - **Node.js:** `v18+` (npm `v9+`)
 - **Python:** `v3.10+` (tested with Python 3.12 and 3.14)
@@ -199,7 +239,7 @@ pip install -r requirements.txt
 ---
 
 ### Step 4: Run Database Migrations
-Apply Alembic migrations to create tables:
+Apply Alembic migrations to create all tables (servers, PCAP imports, traffic flows, feature datasets, ML models, and evaluations):
 
 ```bash
 alembic upgrade head
@@ -214,8 +254,8 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
 - **API Root:** [http://localhost:8000](http://localhost:8000)
 - **Interactive Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Ingestion API:** [http://localhost:8000/api/ingestion](http://localhost:8000/api/ingestion)
-- **Flow Explorer API:** [http://localhost:8000/api/flows](http://localhost:8000/api/flows)
+- **ML Subsystem Health:** [http://localhost:8000/api/ml/health](http://localhost:8000/api/ml/health)
+- **Model Registry API:** [http://localhost:8000/api/ml/models](http://localhost:8000/api/ml/models)
 
 ---
 
@@ -239,26 +279,24 @@ cd backend
 
 ---
 
-## 🔮 Future Roadmap (Phase 4 & Beyond)
+## 🔮 Future Roadmap (Phase 6 & Beyond)
 
-- **Phase 4: AI / Machine Learning Engine**
-  - Supervised Classification: XGBoost and Random Forest ensembles for known threat signatures (DDoS, Port Scan, DNS Tunneling).
-  - Unsupervised Anomaly Detection: Isolation Forest and Autoencoders for novel zero-day exfiltration patterns.
-  - Feature extraction mapping directional flow metadata to model feature vectors.
-- **Phase 5: Real-Time Flow Telemetry & SIEM Integration**
-  - Live socket tap streaming (AF_PACKET / DPDK zero-copy ring buffer).
-  - WebSocket / SSE live alert streaming connecting directly into the `sentraApi` abstraction.
-  - Integration with organizational SIEMs (Elasticsearch, Splunk, Syslog).
+- **Phase 6: Live Streaming Inference & Socket Taps**
+  - High-throughput zero-copy ring buffers (AF_PACKET / DPDK).
+  - Online feature calculation windowing on live unidirectional traffic diodes.
+  - WebSocket alert broadcasting to the SENTRA SOC console.
+- **Phase 7: Active Response & SIEM Integration**
+  - Configurable defensive actions (firewall rule dispatch, BGP blackholing where egress path permits).
+  - SIEM connectors (Elasticsearch, Splunk HEC, Syslog).
 
 ---
 
 ## ⚖️ Analytical Terminology & Disclaimer
 
-In alignment with professional cybersecurity forensics standards:
-- All external addresses are referred to as **"Observed Source IPs"** rather than definitive attacker identities.
-- AI inferences are expressed as **"Model Confidence Scores"** rather than absolute probabilities.
-- Deviations in network telemetry are characterized as **"Suspicious Traffic Patterns"** or **"Potential Threats"**.
-- This phase handles traffic ingestion and flow metadata extraction. Machine learning threat detection is scheduled for Phase 4.
+In alignment with scientific machine learning and cybersecurity forensics standards:
+- **No Fabricated Performance:** All reported accuracies, F1-scores, and false-positive rates reflect empirical holdout test partition evaluations.
+- **Scope Limitations:** Anomaly detectors flag statistical dissimilarity from baseline traffic profiles; an anomaly score is not an absolute probability of malicious intent.
+- **Unidirectional Boundary:** Models are trained strictly on forward-flow telemetry without assuming bidirectional TCP acknowledgments or responses.
 
 ---
 

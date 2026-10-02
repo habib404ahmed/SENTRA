@@ -12,10 +12,12 @@ from app.routers import (
     flows_router,
     features_router,
     datasets_router,
+    ml_router,
 )
 from contextlib import asynccontextmanager
 from app.models.feature_job import FeatureJobModel
 from app.models.pcap_import import PcapImportModel
+from app.models.ml_training_job import MLTrainingJobModel
 
 
 @asynccontextmanager
@@ -34,8 +36,14 @@ async def lifespan(app: FastAPI):
         for job in interrupted_jobs:
             job.status = "failed"
             job.error_message = "Feature extraction interrupted by application restart."
+
+        # Recover interrupted ML training jobs
+        interrupted_ml_jobs = db.query(MLTrainingJobModel).filter(MLTrainingJobModel.status == "training").all()
+        for ml_job in interrupted_ml_jobs:
+            ml_job.status = "failed"
+            ml_job.error_message = "ML training job interrupted by application restart."
         
-        if interrupted_imports or interrupted_jobs:
+        if interrupted_imports or interrupted_jobs or interrupted_ml_jobs:
             db.commit()
     except Exception:
         db.rollback()
@@ -46,8 +54,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="SENTRA Threat Defense API",
-    description="Backend REST API for SENTRA real-time AI network threat detection, asset monitoring, unidirectional PCAP traffic ingestion, and ML feature extraction.",
-    version="0.4.0",
+    description="Backend REST API for SENTRA real-time AI network threat detection, asset monitoring, unidirectional PCAP traffic ingestion, ML feature extraction, and AI/ML model training.",
+    version="0.5.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
@@ -70,14 +78,15 @@ app.include_router(ingestion_router)
 app.include_router(flows_router)
 app.include_router(features_router)
 app.include_router(datasets_router)
+app.include_router(ml_router)
 
 
 @app.get("/", tags=["System"])
 def root():
     return {
         "service": "SENTRA Threat Defense API",
-        "phase": "Phase 4 (Feature Extraction and Dataset Preparation)",
-        "version": "0.4.0",
+        "phase": "Phase 5 (AI/ML Model Development and Threat Detection)",
+        "version": "0.5.0",
         "status": "online",
         "docs": "/docs"
     }

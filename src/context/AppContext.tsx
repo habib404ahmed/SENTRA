@@ -8,6 +8,7 @@ export type PageId =
   | 'servers' 
   | 'ingestion'
   | 'features'
+  | 'models'
   | 'alerts' 
   | 'analytics' 
   | 'intelligence' 

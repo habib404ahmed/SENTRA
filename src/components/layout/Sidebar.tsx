@@ -16,7 +16,8 @@ import {
   LogOut,
   ExternalLink,
   UploadCloud,
-  Sliders
+  Sliders,
+  Brain
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -66,6 +67,13 @@ export const Sidebar: React.FC = () => {
       icon: <Sliders className="w-4 h-4" />,
       badge: 'ML Prep',
       badgeColor: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
+    },
+    {
+      id: 'models',
+      label: 'AI/ML Models',
+      icon: <Brain className="w-4 h-4" />,
+      badge: 'Phase 5',
+      badgeColor: 'bg-purple-500/15 text-purple-400 border border-purple-500/30',
     },
     {
       id: 'alerts',

@@ -14,6 +14,7 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { IngestionPage } from '@/pages/IngestionPage';
 import { FeaturesPage } from '@/pages/FeaturesPage';
+import { ModelsPage } from '@/pages/ModelsPage';
 
 export const AppContent: React.FC = () => {
   const { activePage, isAuthenticated } = useApp();
@@ -32,6 +33,8 @@ export const AppContent: React.FC = () => {
         return <IngestionPage />;
       case 'features':
         return <FeaturesPage />;
+      case 'models':
+        return <ModelsPage />;
       case 'alerts':
         return <AlertsPage />;
       case 'analytics':
@@ -67,7 +70,7 @@ export const AppContent: React.FC = () => {
             <span>•</span>
             <span>SIH 2026 Problem Statement 26145</span>
             <span>•</span>
-            <span className="font-mono text-sentra-cyan/80">Phase 3: PCAP Ingestion & Flow Processing</span>
+            <span className="font-mono text-sentra-cyan/80">Phase 5: AI/ML Threat Detection Engine</span>
           </div>
 
           <div className="font-mono text-[11px] text-slate-500">

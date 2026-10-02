@@ -300,3 +300,130 @@ export interface FeatureDatasetList {
   items: FeatureDataset[];
 }
 
+// --- Phase 5: Machine Learning Types ---
+
+export interface MLDataset {
+  id: number;
+  name: string;
+  source: string;
+  version: string;
+  file_path: string;
+  format: string;
+  feature_schema_version: string;
+  label_column: string;
+  record_count: number;
+  class_count: number;
+  classes: string[];
+  validation_status: string;
+  description?: string | null;
+  created_at: string;
+}
+
+export interface MLDatasetList {
+  total: number;
+  items: MLDataset[];
+}
+
+export type MLModelType = 'classifier' | 'anomaly_detector';
+
+export interface MLTrainingJob {
+  id: number;
+  dataset_id: number;
+  model_type: MLModelType;
+  algorithm: string;
+  hyperparameters: Record<string, any>;
+  status: 'queued' | 'training' | 'completed' | 'failed';
+  output_model_id?: number | null;
+  error_message?: string | null;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface MLTrainingJobList {
+  total: number;
+  items: MLTrainingJob[];
+}
+
+export interface MLModel {
+  id: number;
+  name: string;
+  model_type: MLModelType;
+  algorithm: string;
+  version: string;
+  feature_schema_version: string;
+  dataset_id?: number | null;
+  hyperparameters: Record<string, any>;
+  feature_names: string[];
+  classes?: string[] | null;
+  status: string;
+  created_at: string;
+}
+
+export interface MLModelList {
+  total: number;
+  items: MLModel[];
+}
+
+export interface FeatureImportanceItem {
+  feature: string;
+  importance: number;
+}
+
+export interface MLEvaluation {
+  id: number;
+  model_id: number;
+  dataset_id?: number | null;
+  split_method: string;
+  test_size: number;
+  test_records: number;
+  metrics: {
+    accuracy?: number;
+    macro_precision?: number;
+    macro_recall?: number;
+    macro_f1?: number;
+    weighted_precision?: number;
+    weighted_recall?: number;
+    weighted_f1?: number;
+    normal_false_positive_rate?: number;
+    precision?: number;
+    recall?: number;
+    f1_score?: number;
+    false_positive_rate?: number;
+    roc_auc?: number | null;
+    score_distribution?: {
+      min: number;
+      p25?: number;
+      median: number;
+      p75?: number;
+      max: number;
+    };
+  };
+  confusion_matrix?: {
+    labels: string[];
+    matrix: number[][];
+  } | null;
+  per_class_metrics?: Record<string, {
+    precision: number;
+    recall: number;
+    f1_score: number;
+    support: number;
+  }> | null;
+  feature_importances?: FeatureImportanceItem[] | null;
+  report_summary?: string | null;
+  created_at: string;
+}
+
+export interface MLPredictResponse {
+  model_type: MLModelType;
+  predicted_class?: string | null;
+  confidence?: number | null;
+  class_probabilities?: Record<string, number> | null;
+  is_anomaly?: boolean | null;
+  anomaly_score?: number | null;
+  threshold?: number | null;
+  interpretation?: string | null;
+  model_version: string;
+  feature_schema_version: string;
+}
+

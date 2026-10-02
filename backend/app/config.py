@@ -33,6 +33,12 @@ class Settings(BaseSettings):
         description="Filesystem path for generated feature datasets (CSV, Parquet)"
     )
 
+    # Machine Learning Model Artifact Storage
+    MODEL_DIR: str = Field(
+        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "storage", "models"),
+        description="Filesystem path for trained ML model artifacts (.joblib)"
+    )
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
@@ -46,6 +52,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Ensure uploads and datasets directory exist securely outside web roots
+# Ensure uploads, datasets, and models directories exist securely outside web roots
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 os.makedirs(settings.DATASET_DIR, exist_ok=True)
+os.makedirs(settings.MODEL_DIR, exist_ok=True)

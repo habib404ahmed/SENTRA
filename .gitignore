@@ -36,6 +36,7 @@ backend/storage/
 *.pcapng
 *.cap
 *.parquet
+*.joblib
 
 
 # Logs
