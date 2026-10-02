@@ -233,14 +233,31 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
       return result;
     }
 
-    // HTTP 200 received
+    // HTTP 200 received - verify that the response is actually JSON from sentra-api
+    const contentType = healthRes.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      result.healthRouteValid = false;
+      result.errorKind = 'endpoint_missing';
+      result.statusMessage = 'Health check returned HTML instead of JSON. Ensure VITE_API_BASE_URL points to the hosted FastAPI backend service.';
+      result.technicalDetails = 'Non-JSON response received (likely SPA index.html rewrite).';
+      return result;
+    }
+
     try {
       const data = await healthRes.json();
-      if (data.status === 'ok') {
+      if (data && (data.status === 'ok' || data.service === 'sentra-api')) {
         result.healthRouteValid = true;
+      } else {
+        result.healthRouteValid = false;
+        result.errorKind = 'invalid_response';
+        result.statusMessage = 'Unexpected health check response payload from backend.';
+        return result;
       }
     } catch {
-      result.healthRouteValid = true;
+      result.healthRouteValid = false;
+      result.errorKind = 'invalid_response';
+      result.statusMessage = 'Health endpoint returned invalid JSON.';
+      return result;
     }
   } catch (err: any) {
     const targetDesc = API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'configured origin');

@@ -14,8 +14,8 @@ class Settings(BaseSettings):
         description="Comma-separated allowed CORS origins"
     )
     CORS_ORIGIN_REGEX: Optional[str] = Field(
-        default=None,
-        description="Optional regex pattern to match allowed CORS origins (e.g. for preview domains)"
+        default=r"^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/.*\.onrender\.com$",
+        description="Optional regex pattern to match allowed CORS origins (e.g. for Render or preview domains)"
     )
     HOST: str = Field(default="0.0.0.0", description="Host address for FastAPI server")
     PORT: int = Field(default=8000, description="Port for FastAPI server (auto-detected on PaaS)")

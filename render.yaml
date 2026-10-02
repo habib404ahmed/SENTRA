@@ -1,0 +1,58 @@
+# ==============================================================================
+# SENTRA Cyber Threat Defense Platform — Render Blueprint Specification
+# Infrastructure as Code (IaC) for automated cloud deployment on Render
+# Docs: https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+databases:
+  # ----------------------------------------------------------------------------
+  # 1. PostgreSQL Database Instance
+  # ----------------------------------------------------------------------------
+  - name: sentra-db
+    databaseName: sentra
+    user: sentra_user
+    plan: free # Can be upgraded to 'starter' for production high-availability
+    ipAllowList: [] # Allows private & secure access from Render web services
+
+services:
+  # ----------------------------------------------------------------------------
+  # 2. FastAPI Threat Defense Backend API (Web Service)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: sentra-backend
+    runtime: python
+    rootDir: backend
+    plan: free # Can be upgraded to 'starter' (512MB RAM, no sleep)
+    buildCommand: pip install -r requirements.txt
+    startCommand: python migrate.py && python run.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sentra-db
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: DOCS_ENABLED
+        value: "true"
+      - key: CORS_ORIGIN_REGEX
+        value: "^https://.*\\.onrender\\.com$"
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173,http://localhost:3000"
+      - key: WEB_CONCURRENCY
+        value: "1"
+
+  # ----------------------------------------------------------------------------
+  # 3. React + TypeScript SOC Console (Static Site)
+  # ----------------------------------------------------------------------------
+  - type: static
+    name: sentra-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false # Set in Render Dashboard to your backend URL (e.g. https://sentra-backend.onrender.com)
