@@ -146,53 +146,47 @@ export const OverviewPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Top Threat Defense Operations Banner */}
-      <div className="hud-bracket p-4 bg-background-surface/90 border border-border flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
-        {/* Subtle cyan glow line */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-sentra-cyan/50 to-transparent" />
-
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="p-2.5 rounded bg-background border border-sentra-cyan/40 text-sentra-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)] shrink-0">
-            <Radio className="w-5 h-5 animate-pulse text-sentra-cyan" />
+      {/* Operations Banner */}
+      <div className="soc-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded bg-sentra-cyan/10 border border-sentra-cyan/30 text-sentra-cyan shrink-0">
+            <Radio className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xs sm:text-sm font-mono font-bold tracking-widest text-text uppercase">
-                CYBER THREAT COMMAND CENTER // SENTRA-OPS
-              </h2>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sentra-green/15 text-sentra-green border border-sentra-green/30 font-bold uppercase">
-                LIVE INGRESS
+            <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+              Security Operations Overview
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sentra-green/15 text-sentra-green border border-sentra-green/30 font-semibold">
+                LIVE
               </span>
-            </div>
-            <p className="text-[11px] font-mono text-text-muted mt-0.5">
-              PASSIVE OPTICAL TAP: <strong className="text-sentra-cyan">eth0 (10GbE SIMPLEX)</strong> • ZERO RETURN-PATH EMISSIONS
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Passive optical tap: <strong className="text-sentra-cyan">eth0 (10GbE Simplex)</strong> — zero return-path emissions
             </p>
           </div>
         </div>
 
-        {/* Sync Status & Action Bar */}
-        <div className="flex items-center gap-2.5 text-xs font-mono relative z-10 flex-wrap">
+        {/* Sync Status & Action */}
+        <div className="flex items-center gap-2 flex-wrap">
           {lastSyncTime && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-background/80 border border-border text-text-muted text-[10px]">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-background border border-border text-slate-400 text-[11px]">
               <Clock className="w-3 h-3 text-sentra-cyan" />
-              <span>SYNC: <strong className="text-text">{lastSyncTime}</strong></span>
+              <span>Synced: <strong className="text-slate-200">{lastSyncTime}</strong></span>
             </div>
           )}
 
           <button
             onClick={handleManualSync}
             disabled={isSyncing}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border hover:border-sentra-cyan text-text-muted hover:text-sentra-cyan transition-colors disabled:opacity-50 text-[11px]"
-            title="Perform manual telemetry refresh"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border hover:border-sentra-cyan text-slate-400 hover:text-sentra-cyan transition-colors disabled:opacity-50 text-xs"
+            title="Manual telemetry refresh"
           >
             <RotateCw className={`w-3 h-3 ${isSyncing ? 'animate-spin text-sentra-cyan' : ''}`} />
-            <span>{isSyncing ? 'SYNCING...' : 'SYNC'}</span>
+            <span>{isSyncing ? 'Syncing...' : 'Sync'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border text-text">
-            <span className="w-2 h-2 rounded-full bg-sentra-green animate-ping" />
-            <span className="text-[11px] tracking-wider text-text-muted">DIODE:</span>
-            <span className="text-sentra-green font-bold text-[11px]">LOCKED</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-sentra-green/25">
+            <span className="w-2 h-2 rounded-full bg-sentra-green animate-pulse" />
+            <span className="text-[11px] text-sentra-green font-semibold">Diode Active</span>
           </div>
         </div>
       </div>

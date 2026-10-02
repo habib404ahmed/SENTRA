@@ -118,26 +118,25 @@ export const Sidebar: React.FC = () => {
 
           {!collapsed ? (
             <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-8 h-8 rounded bg-background border border-sentra-cyan/50 flex items-center justify-center shadow-glow-cyan shrink-0 relative group">
+              <div className="w-8 h-8 rounded bg-background border border-sentra-cyan/40 flex items-center justify-center shrink-0">
                 <Shield className="w-4 h-4 text-sentra-cyan stroke-[2.2]" />
-                <div className="absolute inset-0 bg-sentra-cyan/10 rounded animate-pulse" />
               </div>
               <div className="leading-tight">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono font-black tracking-widest text-sm text-text">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold tracking-wider text-sm text-slate-100">
                     SENTRA
                   </span>
-                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/40 font-bold">
-                    DEF-OPS
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/30 font-semibold">
+                    SOC
                   </span>
                 </div>
-                <p className="text-[9px] font-mono text-text-muted uppercase tracking-wider truncate max-w-[145px]">
-                  Unidirectional IP Core
+                <p className="text-[9px] text-slate-500 truncate max-w-[145px]">
+                  AI Cyber Threat Detection
                 </p>
               </div>
             </div>
           ) : (
-            <div className="mx-auto w-8 h-8 rounded bg-background border border-sentra-cyan/50 flex items-center justify-center shadow-glow-cyan">
+            <div className="mx-auto w-8 h-8 rounded bg-background border border-sentra-cyan/40 flex items-center justify-center">
               <Shield className="w-4 h-4 text-sentra-cyan stroke-[2.2]" />
             </div>
           )}
@@ -154,12 +153,12 @@ export const Sidebar: React.FC = () => {
 
         {/* Technical Sub-Header / Problem Statement badge */}
         {!collapsed && (
-          <div className="px-3.5 py-2 bg-background/50 border-b border-border/70 flex items-center justify-between text-[10px] font-mono">
-            <span className="text-text-muted flex items-center gap-1.5">
+          <div className="px-3.5 py-2 bg-background/50 border-b border-border/70 flex items-center justify-between text-[10px]">
+            <span className="text-slate-500 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-sentra-green animate-pulse" />
-              <span>SIH-26145 // P-5</span>
+              <span>Unidirectional Mode</span>
             </span>
-            <span className="text-text-muted/70 tracking-widest">DIODE-ACTIVE</span>
+            <span className="text-slate-600">SIH-26145</span>
           </div>
         )}
 
@@ -186,11 +185,11 @@ export const Sidebar: React.FC = () => {
                 )}
 
                 <div className="flex items-center gap-2.5">
-                  <span className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-sentra-cyan' : 'text-text-muted group-hover:text-text'}`}>
+                  <span className={`shrink-0 transition-transform duration-200 ${isActive ? 'text-sentra-cyan' : 'text-slate-500 group-hover:text-slate-300'}`}>
                     {item.icon}
                   </span>
                   {!collapsed && (
-                    <span className="tracking-wide text-[11px] truncate uppercase font-semibold">
+                    <span className="tracking-wide text-[11px] truncate font-medium">
                       {item.label}
                     </span>
                   )}

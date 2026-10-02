@@ -101,15 +101,15 @@ export const Header: React.FC = () => {
       {/* Page Title & Breadcrumb */}
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-xs sm:text-sm font-bold text-text uppercase tracking-widest font-mono">
+          <h1 className="text-sm font-semibold text-slate-100">
             {currentInfo.title}
           </h1>
-          <span className="text-border-bright font-mono text-xs">//</span>
-          <span className="text-[11px] font-mono font-bold text-sentra-cyan uppercase tracking-wider">
+          <span className="text-slate-600 text-xs">/</span>
+          <span className="text-xs font-medium text-sentra-cyan capitalize">
             {activePage}
           </span>
         </div>
-        <p className="text-[10px] font-mono text-text-muted hidden md:block tracking-tight">
+        <p className="text-[11px] text-slate-500 hidden md:block mt-0.5">
           {currentInfo.subtitle}
         </p>
       </div>
@@ -125,14 +125,14 @@ export const Header: React.FC = () => {
         {/* Global Search Button */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-background-card border border-border text-text-muted hover:text-text hover:border-border-bright hover:shadow-[0_0_8px_rgba(37,50,68,0.5)] transition-all text-xs font-mono"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-background-card border border-border text-slate-400 hover:text-slate-200 hover:border-border-bright transition-all text-xs"
           title="Search telemetry (Ctrl+K)"
           aria-label="Search telemetry"
         >
           <Search className="w-3.5 h-3.5 text-sentra-cyan" />
-          <span className="hidden sm:inline text-[11px]">TELEMETRY SEARCH</span>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-mono bg-background border border-border rounded text-text-muted">
-            CTRL K
+          <span className="hidden sm:inline text-[11px]">Search...</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-background border border-border rounded text-slate-500">
+            ⌘K
           </kbd>
         </button>
 
