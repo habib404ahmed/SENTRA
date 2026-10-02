@@ -297,14 +297,14 @@ def test_patch_alert_status_api(db_session: Session):
     assert res_data["status"] == "investigating"
 
 
-def test_end_to_end_flow_detection_service(db_session: Session):
+def test_end_to_end_flow_detection_service(db_session: Session, test_import_id: int):
     """
     End-to-end integration test: takes an existing or created flow, resolves active
     trained models from the registry, executes inference, decision policy, and verifies alert creation.
     """
     # 1. Create a simulated high-rate SYN flood flow
     flow = TrafficFlowModel(
-        import_id=1,
+        import_id=test_import_id,
         source_ip="185.220.101.5",
         destination_ip="10.0.0.1",
         source_port=65000,

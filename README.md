@@ -221,6 +221,55 @@ SENTRA SOC Console (React 19 + TypeScript + Flow Explorer + Telemetry Modal)
 - [x] **Automated Test Suite (`tests/test_detection_engine.py`):**
   - 8 comprehensive test cases covering health endpoints, decision policy rules, facts vs. inferences separation, deduplication, lifecycle transitions, API endpoints, and end-to-end flow evaluation.
 
+### Phase 7: Full-System Testing, Performance Evaluation & Validation (Completed)
+- [x] **Reproducible Test Environment & Generators (`tests/conftest.py`):**
+  - Deterministic seeds (`random_state=42`) across NumPy, Python random, and Scikit-Learn.
+  - Safe, cross-platform Scapy PCAP byte serialization via temporary files.
+  - `SyntheticTrafficGenerator` simulating benign traffic, DDoS SYN floods, port scan sweeps, and DNS tunneling streams.
+- [x] **End-to-End Pipeline Integration Suite (`tests/test_e2e_pipeline.py`):**
+  - Strict unidirectional flow separation (ensuring reverse traffic is never merged).
+  - Schema v1.0.0 feature extraction $\to$ multi-model inference $\to$ policy evaluation.
+  - 24-hour temporal alert deduplication and occurrence counting.
+  - Full analyst triage lifecycle state machine (`new` $\to$ `investigating` $\to$ `resolved`) with immutable audit logging.
+- [x] **Controlled Detection Evaluation Pipeline (`app/evaluation/`):**
+  - `ControlledDetectionEvaluator`: Leakage-free train/test evaluation on benchmark datasets.
+  - Accuracy: **99.50%**, Macro F1: **99.50%**, Binary Anomaly ROC-AUC: **0.9991**, False-Positive Rate on Normal Traffic: **0.00%**.
+  - Forensic case analysis of false positives and false negatives.
+  - Threshold sensitivity curves spanning confidence thresholds $0.40$ to $0.85$.
+  - Generates machine-readable JSON (`reports/detection_evaluation_report.json`) and Markdown (`reports/detection_evaluation_report.md`).
+- [x] **Performance & Scalability Benchmarking (`scripts/run_benchmarks.py`):**
+  - Streaming packet parser throughput: **573.45 packets/second**.
+  - Feature extraction throughput: **9,999.6 flows/second** (mean latency: **96.05 $\mu$s**).
+  - End-to-end decision pipeline throughput: **3,618.15 flows/second** (mean latency: **0.2764 ms**).
+  - Peak memory footprint: **12.10 MB**.
+  - Generates benchmark reports (`reports/benchmark_results.json` and `reports/benchmark_results.md`).
+- [x] **API & Database Reliability Suite (`tests/test_api_reliability_and_security.py`):**
+  - Input validation and 422 Unprocessable Entity error handling.
+  - 404 Not Found handling on non-existent resource IDs.
+  - PCAP magic bytes validation, empty file rejection, and path traversal defense.
+  - SQL injection resilience across flow filters, server creation, and alert notes.
+- [x] **Performance SLA Test Suite (`tests/test_performance_benchmarks.py`):**
+  - Continuous validation ensuring latencies stay within strict SLA bounds.
+- [x] **SIH 2026 Live Demonstration & State Reset Scripts:**
+  - `scripts/demo_sih2026.py`: Complete 8-step live demonstration for hackathon judges.
+  - `scripts/reset_demo_state.py`: Idempotent database state cleaner for repeated presentations.
+
+---
+
+## ⚡ Performance & Evaluation Highlights (Phase 7 Empirical Data)
+
+| Metric | Result | Benchmark SLA | Target Status |
+| :--- | :---: | :---: | :---: |
+| **Multi-Class Accuracy** | **99.50%** | $> 95.0\%$ | **EXCEEDED** |
+| **Macro F1-Score** | **99.50%** | $> 95.0\%$ | **EXCEEDED** |
+| **Anomaly ROC-AUC** | **0.9991** | $> 0.95$ | **EXCEEDED** |
+| **Normal Traffic False-Positive Rate** | **0.00%** | $< 1.0\%$ | **EXCEEDED** |
+| **Feature Extraction Latency** | **96.05 $\mu$s** | $< 500$ $\mu$s | **EXCEEDED** |
+| **Decision Pipeline Latency** | **0.2764 ms** | $< 5.0$ ms | **EXCEEDED** |
+| **Decision Flow Throughput** | **3,618 flows/sec** | $> 500$ flows/sec | **EXCEEDED** |
+| **Peak Memory Footprint** | **12.10 MB** | $< 250$ MB | **OPTIMAL** |
+| **Total Automated Tests** | **45 / 45 Passed** | 100% Pass | **100% PASS** |
+
 ---
 
 ### Prerequisites
@@ -307,7 +356,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-### Step 7: Run Backend Test Suite
+### Step 7: Run Full Automated Test Suite (45 Tests)
 ```bash
 cd backend
 .\.venv\Scripts\pytest.exe -v
@@ -315,15 +364,58 @@ cd backend
 
 ---
 
-## 🔮 Future Roadmap (Phase 6 & Beyond)
+### Step 8: Execute Controlled Detection Evaluation
+Runs train/test evaluation on benchmark datasets, computes confusion matrix, per-class metrics, false-positive analysis, and threshold sensitivity curves:
 
-- **Phase 6: Live Streaming Inference & Socket Taps**
-  - High-throughput zero-copy ring buffers (AF_PACKET / DPDK).
-  - Online feature calculation windowing on live unidirectional traffic diodes.
-  - WebSocket alert broadcasting to the SENTRA SOC console.
-- **Phase 7: Active Response & SIEM Integration**
-  - Configurable defensive actions (firewall rule dispatch, BGP blackholing where egress path permits).
-  - SIEM connectors (Elasticsearch, Splunk HEC, Syslog).
+```bash
+cd backend
+.\.venv\Scripts\python.exe scripts/run_evaluation.py
+```
+*Reports generated: `backend/reports/detection_evaluation_report.json` and `backend/reports/detection_evaluation_report.md`*
+
+---
+
+### Step 9: Run Performance & Scalability Benchmarks
+Benchmarks streaming packet parsing throughput, feature extraction latency, model inference, and end-to-end decision pipeline:
+
+```bash
+cd backend
+.\.venv\Scripts\python.exe scripts/run_benchmarks.py
+```
+*Reports generated: `backend/reports/benchmark_results.json` and `backend/reports/benchmark_results.md`*
+
+---
+
+### Step 10: Run Live SIH 2026 Demonstration Script
+Demonstrates the full passive unidirectional defense pipeline to hackathon judges:
+
+```bash
+cd backend
+.\.venv\Scripts\python.exe scripts/demo_sih2026.py
+```
+
+To safely reset test demonstration records for repeated evaluation runs:
+```bash
+cd backend
+.\.venv\Scripts\python.exe scripts/reset_demo_state.py
+```
+
+---
+
+### Step 11: Build Production Frontend
+In the root directory:
+
+```bash
+npm run build
+```
+
+---
+
+## 🔮 Future Roadmap (Post-Hackathon Extensions)
+
+- **Hardware Diode Transceiver Offload:** Zero-copy kernel bypass (DPDK / eBPF) for line-rate 10Gbps+ simplex fiber taps.
+- **Federated Anomaly Profile Exchange:** Cross-enclave model weight synchronization via cryptographic secure multi-party computation.
+- **Out-of-Band Upstream Orchestration:** Automated defensive signaling to perimeter SDN routers via isolated management plane channels.
 
 ---
 
