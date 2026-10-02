@@ -56,4 +56,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        sync: false # Set in Render Dashboard to your backend URL (e.g. https://sentra-backend.onrender.com)
+        fromService:
+          type: web
+          name: sentra-backend
+          property: host

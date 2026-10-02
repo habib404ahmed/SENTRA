@@ -21,10 +21,14 @@ import { serversApi, CreateServerPayload, UpdateServerPayload } from './servers'
 
 import { alertsApi, mapBackendAlertToThreatAlert } from './alerts';
 
+import { ingestionApi } from './ingestion';
+import { flowsApi } from './flows';
+import { mlApi } from './ml';
+
 // Simulated latency helper for remaining mock modules
 const delay = (ms: number = 100) => new Promise(resolve => setTimeout(resolve, ms));
 
-let alertsStore: ThreatAlert[] = [...initialMockAlerts];
+let alertsStore: ThreatAlert[] = [];
 let notificationsStore: NotificationItem[] = [...initialMockNotifications];
 
 export const sentraApi = {
@@ -60,7 +64,7 @@ export const sentraApi = {
     return await serversApi.update(id, { status: nextStatus });
   },
 
-  // === Dashboard & KPIs (Server count and alert statistics pulled dynamically from PostgreSQL) ===
+  // === Dashboard & KPIs (Server count, alert statistics, flow telemetry, ML evaluation from backend) ===
   async getDashboardMetrics(): Promise<KPIMetrics> {
     let serverCount = 0;
     try {
@@ -72,54 +76,132 @@ export const sentraApi = {
 
     let activeCount = 0;
     let criticalCount = 0;
+    let totalAlerts = 0;
     try {
       const summary = await alertsApi.getAlertSummary();
-      activeCount = summary.active_alerts;
-      criticalCount = summary.critical_alerts;
+      totalAlerts = summary.total_alerts || 0;
+      activeCount = summary.active_alerts || 0;
+      criticalCount = summary.critical_alerts || 0;
     } catch {
-      activeCount = alertsStore.filter(a => a.status === 'active' || a.status === 'new' || a.status === 'investigating').length;
-      criticalCount = alertsStore.filter(a => (a.status === 'active' || a.status === 'new') && a.severity === 'critical').length;
+      activeCount = 0;
+      criticalCount = 0;
+      totalAlerts = 0;
+    }
+
+    let totalFlows = 0;
+    let totalPackets = 0;
+    try {
+      const [importsRes, flowsRes] = await Promise.all([
+        ingestionApi.getImports({ limit: 100 }).catch(() => null),
+        flowsApi.getFlows({ limit: 1 }).catch(() => null)
+      ]);
+      if (flowsRes) {
+        totalFlows = flowsRes.total || 0;
+      }
+      if (importsRes && Array.isArray(importsRes.items)) {
+        totalPackets = importsRes.items.reduce((sum, item) => sum + (item.total_packets || 0), 0);
+      }
+    } catch {
+      totalFlows = 0;
+      totalPackets = 0;
+    }
+
+    // Query real trained model evaluations if available
+    let modelMetricLabel = 'No Trained Model';
+    let modelMetricValue = '0.0%';
+    try {
+      const modelsList = await mlApi.getModels();
+      if (modelsList && modelsList.items && modelsList.items.length > 0) {
+        const bestModel = modelsList.items[0];
+        try {
+          const evalRes = await mlApi.getModelEvaluation(bestModel.id);
+          if (evalRes && evalRes.metrics) {
+            const m = evalRes.metrics;
+            const f1 = m.macro_f1 != null ? m.macro_f1 : (m.f1_score != null ? m.f1_score : m.accuracy);
+            modelMetricValue = f1 != null ? `${(f1 * 100).toFixed(1)}%` : 'Evaluated';
+            modelMetricLabel = `${bestModel.algorithm || 'Model'} (${bestModel.version})`;
+          }
+        } catch {
+          modelMetricLabel = `${bestModel.algorithm || 'Model'} (${bestModel.version})`;
+          modelMetricValue = 'Trained';
+        }
+      }
+    } catch {
+      // No models
     }
     
     return {
-      ...mockKpiMetrics,
       monitoredServers: {
-        ...mockKpiMetrics.monitoredServers,
         value: serverCount,
+        changeText: `${serverCount} Active Targets`,
+        trend: serverCount > 0 ? 'up' : 'neutral',
       },
       activeThreats: {
-        ...mockKpiMetrics.activeThreats,
         value: activeCount,
         criticalCount,
+        changeText: `${totalAlerts} Total Registered`,
+        trend: activeCount > 0 ? 'up' : 'neutral',
+      },
+      trafficAnalyzed: {
+        value: totalFlows > 0 ? `${totalFlows.toLocaleString()} Flows` : '0 Flows',
+        period: totalPackets > 0 ? `${totalPackets.toLocaleString()} Pkts` : 'Awaiting PCAP',
+        rawGb: 0,
+      },
+      threatsDetected: {
+        value: totalAlerts,
+        period: 'Telemetry Ingress',
+        changeText: `${activeCount} Active`,
+      },
+      modelMetricPlaceholder: {
+        title: 'Model Health',
+        f1ScoreDemo: modelMetricValue,
+        baselineAccuracy: modelMetricValue,
+        latencyAvg: '< 1ms',
+        isDemo: modelMetricLabel === 'No Trained Model',
+        note: modelMetricLabel
       }
     };
   },
 
-  // === Threat Distribution (Pulled dynamically from PostgreSQL if available) ===
-  async getThreatDistribution() {
+  // === Threat Distribution (Pulled dynamically from PostgreSQL; returns empty if 0 alerts) ===
+  async getThreatDistribution(): Promise<{ category: string; count: number; percentage: number; color: string; trend: string }[]> {
     try {
       const summary = await alertsApi.getAlertSummary();
-      if (summary.total_alerts > 0) {
-        const colors = ['#f43f5e', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', '#10b981'];
+      if (summary && summary.total_alerts > 0 && summary.by_threat_class) {
+        const colors = ['#00E5FF', '#FF1744', '#FFB300', '#9C27B0', '#00E676', '#3B82F6', '#EC4899'];
         let idx = 0;
         return Object.entries(summary.by_threat_class).map(([cat, count]) => ({
-          category: cat as any,
+          category: cat,
           count,
           percentage: Math.round((count / summary.total_alerts) * 100),
           color: colors[idx++ % colors.length],
           trend: '+0%'
         }));
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.warn('Failed to load real threat distribution from backend:', err);
     }
-    await delay();
-    return mockThreatDistribution;
+    return [];
   },
 
+  // === Traffic History Timeline (Pulled dynamically from PostgreSQL alert trend) ===
   async getTrafficHistory(): Promise<TrafficDataPoint[]> {
-    await delay();
-    return mockHourlyTraffic;
+    try {
+      const summary = await alertsApi.getAlertSummary();
+      if (summary && summary.recent_trend && summary.recent_trend.length > 0) {
+        return summary.recent_trend.map(t => ({
+          timestamp: t.date,
+          volumeGbps: 0,
+          packetsPerSec: 0,
+          bytesPerSec: 0,
+          flowCount: 0,
+          threatEvents: t.count,
+        }));
+      }
+    } catch (err) {
+      console.warn('Failed to load real traffic trend from backend:', err);
+    }
+    return [];
   },
 
   // === Alerts Endpoints (Connected to Phase 6 Threat Detection Backend) ===
@@ -129,15 +211,18 @@ export const sentraApi = {
       const serverNames = new Map(servers.map(s => [s.id, s.name]));
 
       const res = await alertsApi.getAlerts({ page_size: 100 });
-      if (res.items && res.items.length > 0) {
-        return res.items.map(item =>
+      if (res && Array.isArray(res.items)) {
+        const mapped = res.items.map(item =>
           mapBackendAlertToThreatAlert(item, serverNames.get(String(item.server_id)) || '')
         );
+        alertsStore = mapped;
+        return mapped;
       }
     } catch (err) {
-      console.warn('Failed to load alerts from backend API, using fallback store:', err);
+      console.warn('Failed to load alerts from backend API:', err);
     }
-    return [...alertsStore];
+    // Return empty array when backend has no alerts or is unreachable (never fabricate mock alerts)
+    return [];
   },
 
   async getAlertById(id: string): Promise<ThreatAlert | undefined> {
@@ -154,7 +239,7 @@ export const sentraApi = {
       const updated = await alertsApi.updateAlertStatus(id, status, note);
       return mapBackendAlertToThreatAlert(updated);
     } catch (err) {
-      console.warn(`Backend alert status update failed for #${id}, updating local store:`, err);
+      console.warn(`Backend alert status update failed for #${id}:`, err);
       const alert = alertsStore.find(a => a.id === id);
       if (!alert) return null;
       alert.status = status;

@@ -15,8 +15,13 @@ import {
   CheckCircle2, 
   Save,
   HelpCircle,
-  AlertTriangle
+  AlertTriangle,
+  Server,
+  Globe,
+  RefreshCw
 } from 'lucide-react';
+import { API_BASE_URL, getCustomApiBaseUrl, setCustomApiBaseUrl } from '@/config/api';
+import { checkSystemDiagnostics, ConnectionDiagnosticResult } from '@/services/servers';
 
 export const SettingsView: React.FC = () => {
   const { showToast } = useApp();
@@ -30,6 +35,40 @@ export const SettingsView: React.FC = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [slackWebhook, setSlackWebhook] = useState(false);
   const [criticalOnly, setCriticalOnly] = useState(false);
+
+  const [customApiUrl, setCustomApiUrl] = useState(() => getCustomApiBaseUrl() || API_BASE_URL || '');
+  const [diagResult, setDiagResult] = useState<ConnectionDiagnosticResult | null>(null);
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+
+  const handleSaveApiUrl = () => {
+    if (customApiUrl.trim()) {
+      setCustomApiBaseUrl(customApiUrl.trim());
+      showToast(`Custom API base URL saved: ${customApiUrl.trim()}. Reloading connection...`, 'success');
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      setCustomApiBaseUrl(null);
+      showToast('Custom API URL cleared. Reverting to default configuration.', 'info');
+      setTimeout(() => window.location.reload(), 800);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setIsDiagnosing(true);
+    showToast('Running live diagnostic probe against API...', 'info');
+    try {
+      const res = await checkSystemDiagnostics();
+      setDiagResult(res);
+      if (res.backendOnline && res.databaseOnline) {
+        showToast('All systems operational: FastAPI and PostgreSQL connected!', 'success');
+      } else {
+        showToast(`Diagnostic check: ${res.statusMessage}`, 'error');
+      }
+    } catch (err: any) {
+      showToast(`Diagnostic failed: ${err?.message || 'Unknown error'}`, 'error');
+    } finally {
+      setIsDiagnosing(false);
+    }
+  };
 
   const handleSave = (section: string) => {
     showToast(`${section} settings saved successfully.`, 'success');
@@ -60,6 +99,7 @@ export const SettingsView: React.FC = () => {
       {/* Tabs */}
       <Tabs
         tabs={[
+          { id: 'backend', label: 'Cloud API & Backend', icon: <Server className="w-3.5 h-3.5" /> },
           { id: 'monitoring', label: 'Unidirectional Monitoring', icon: <Lock className="w-3.5 h-3.5" /> },
           { id: 'detection', label: 'Detection & ML Pipeline', icon: <Sliders className="w-3.5 h-3.5" /> },
           { id: 'notifications', label: 'Notifications & Dispatch', icon: <Bell className="w-3.5 h-3.5" /> },
@@ -69,6 +109,76 @@ export const SettingsView: React.FC = () => {
         activeTab={activeTab}
         onChange={setActiveTab}
       />
+
+      {/* Tab 0: Cloud API & Backend */}
+      {activeTab === 'backend' && (
+        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-100 font-display flex items-center gap-2">
+              <Globe className="w-4 h-4 text-sentra-cyan" />
+              FastAPI Threat Defense Backend & Database Integration
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Connect this frontend SOC console to your deployed FastAPI backend web service or local development instance.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-background-card border border-border space-y-4">
+            <div>
+              <label className="block text-xs font-mono font-medium text-slate-300 mb-1.5">
+                Backend API Base URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="https://sentra-backend.onrender.com (or http://localhost:8000)"
+                  value={customApiUrl}
+                  onChange={(e) => setCustomApiUrl(e.target.value)}
+                  className="flex-1 bg-background border border-border focus:border-sentra-cyan rounded px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none"
+                />
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveApiUrl}
+                  icon={<Save className="w-3.5 h-3.5" />}
+                >
+                  Save URL
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleTestConnection}
+                  disabled={isDiagnosing}
+                  icon={<RefreshCw className={`w-3.5 h-3.5 ${isDiagnosing ? 'animate-spin' : ''}`} />}
+                >
+                  {isDiagnosing ? 'Testing...' : 'Test Connection'}
+                </Button>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1 font-mono">
+                Currently Active Endpoint Origin: <strong className="text-sentra-cyan">{API_BASE_URL || '(Same-Origin Relative /api)'}</strong>
+              </p>
+            </div>
+
+            {diagResult && (
+              <div className={`p-3.5 rounded-lg border font-mono text-xs ${
+                diagResult.backendOnline && diagResult.databaseOnline 
+                  ? 'bg-sentra-green/10 border-sentra-green/30 text-sentra-green'
+                  : 'bg-sentra-danger/10 border-sentra-danger/30 text-sentra-danger'
+              }`}>
+                <div className="flex items-center gap-2 font-bold mb-1">
+                  <span>STATUS: {diagResult.backendOnline && diagResult.databaseOnline ? 'ONLINE & HEALTHY' : 'CONNECTIVITY ISSUE'}</span>
+                </div>
+                <div className="text-[11px] space-y-0.5 opacity-90">
+                  <p>• FastAPI Service Liveness: {diagResult.backendOnline ? 'Online (200 OK)' : 'Offline / Unreachable'}</p>
+                  <p>• /api/health Route: {diagResult.healthRouteValid ? 'Valid' : 'Invalid / 404'}</p>
+                  <p>• PostgreSQL Database: {diagResult.databaseOnline ? 'Connected' : 'Disconnected / Unavailable'}</p>
+                  <p>• Diagnostic Message: {diagResult.statusMessage}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Tab 1: Unidirectional Monitoring */}
       {activeTab === 'monitoring' && (

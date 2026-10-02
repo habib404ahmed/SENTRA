@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { Badge } from '@/components/common/Badge';
-import { ExternalLink, ArrowRight } from 'lucide-react';
+import { ExternalLink, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const RecentAlertsTable: React.FC = () => {
   const { alerts, setSelectedAlertId, setActivePage } = useApp();
@@ -47,7 +47,20 @@ export const RecentAlertsTable: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
-            {recentAlerts.map((alert) => (
+            {recentAlerts.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="py-8 text-center text-text-muted font-mono text-xs">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <ShieldCheck className="w-8 h-8 text-sentra-green/50" />
+                    <span className="text-text font-bold">NO SECURITY INCIDENTS DETECTED // SYSTEM NOMINAL</span>
+                    <span className="text-[10px] text-text-muted max-w-sm">
+                      Zero anomalous directional flows or threat alerts recorded in PostgreSQL. Telemetry tap is continuously monitoring.
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              recentAlerts.map((alert) => (
               <tr 
                 key={alert.id}
                 className="hover:bg-background-card/60 transition-colors group cursor-pointer"
@@ -102,7 +115,7 @@ export const RecentAlertsTable: React.FC = () => {
                   </button>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>

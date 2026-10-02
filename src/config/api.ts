@@ -11,18 +11,80 @@
  * - In local dev (import.meta.env.DEV), falls back to http://localhost:8000.
  * - In production builds where VITE_API_BASE_URL is omitted or empty, defaults to '' (same-origin relative path /api).
  */
+/**
+ * Normalizes an API URL string by trimming whitespace, ensuring proper scheme (https/http),
+ * and stripping any trailing slash or redundant /api path segment.
+ */
+export function normalizeApiUrl(url: string): string {
+  let clean = url.trim().replace(/\/+$/, '');
+  if (!clean) return '';
+
+  // If protocol is omitted (e.g. sentra-backend.onrender.com or localhost:8000), supply appropriate protocol
+  if (!/^https?:\/\//i.test(clean)) {
+    clean = clean.startsWith('localhost') || clean.startsWith('127.0.0.1') 
+      ? `http://${clean}` 
+      : `https://${clean}`;
+  }
+
+  // If the base URL ends with /api (e.g. https://domain.com/api), strip it
+  // because endpoint paths throughout SENTRA are prefixed with /api
+  if (clean.toLowerCase().endsWith('/api')) {
+    clean = clean.slice(0, -4).replace(/\/+$/, '');
+  }
+
+  return clean;
+}
+
+export function getCustomApiBaseUrl(): string | null {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('sentra_api_base_url');
+      if (stored && stored.trim()) {
+        return normalizeApiUrl(stored);
+      }
+    } catch {
+      // Ignore localStorage errors (e.g. private browsing)
+    }
+  }
+  return null;
+}
+
+export function setCustomApiBaseUrl(url: string | null): void {
+  if (typeof window !== 'undefined') {
+    try {
+      if (url && url.trim()) {
+        localStorage.setItem('sentra_api_base_url', normalizeApiUrl(url));
+      } else {
+        localStorage.removeItem('sentra_api_base_url');
+      }
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+/**
+ * Resolves the API base URL based on localStorage override, build environment variables,
+ * or local development fallback.
+ */
 function resolveBaseUrl(): string {
+  // 1. Check custom localStorage override
+  const custom = getCustomApiBaseUrl();
+  if (custom) return custom;
+
+  // 2. Check build-time environment variable
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (typeof envUrl === 'string' && envUrl.trim() !== '') {
-    let clean = envUrl.trim().replace(/\/+$/, '');
-    // If the base URL ends with /api (e.g. https://api.sentra.com/api), strip it
-    // because endpoint paths are defined with /api (or canonicalized by buildApiUrl)
-    if (clean.toLowerCase().endsWith('/api')) {
-      clean = clean.slice(0, -4).replace(/\/+$/, '');
-    }
-    return clean;
+    return normalizeApiUrl(envUrl);
   }
-  return import.meta.env.DEV ? 'http://localhost:8000' : '';
+
+  // 3. In local dev mode, default to localhost:8000
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8000';
+  }
+
+  // 4. In production without configured VITE_API_BASE_URL, default to same-origin relative path
+  return '';
 }
 
 export const API_BASE_URL: string = resolveBaseUrl();
