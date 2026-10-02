@@ -57,10 +57,21 @@ async def lifespan(app: FastAPI):
         
         if interrupted_imports or interrupted_jobs or interrupted_ml_jobs or interrupted_det_jobs:
             db.commit()
-    except Exception:
-        db.rollback()
+    except Exception as exc:
+        logger.warning(
+            "PostgreSQL database connection is currently unavailable or still starting up (%s). "
+            "FastAPI will start normally and connect when PostgreSQL becomes ready.",
+            exc
+        )
+        try:
+            db.rollback()
+        except Exception:
+            pass
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
     yield
 
 

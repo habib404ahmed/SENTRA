@@ -184,11 +184,14 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
     timestamp: new Date().toISOString(),
   };
 
-  // Step 1: Check FastAPI Backend Liveness
+  // Step 1: Check FastAPI Backend Liveness (with 3-second abort timeout)
   const t0 = performance.now();
+  const c1 = new AbortController();
+  const t1Id = setTimeout(() => c1.abort(), 3000);
   try {
     const healthRes = await fetch(`${API_BASE_URL}/api/health`, {
       headers: { 'Accept': 'application/json' },
+      signal: c1.signal,
     });
     result.backendLatencyMs = Math.round(performance.now() - t0);
 
@@ -203,15 +206,20 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
   } catch (err: any) {
     result.errorKind = 'backend_offline';
     result.statusMessage = `Backend API server is offline or unreachable at ${API_BASE_URL}.`;
-    result.technicalDetails = `Browser network fetch failed (${err?.message || 'Connection refused'}). Please verify the FastAPI backend is running (e.g. 'python run.py' or 'uvicorn app.main:app --port 8000').`;
+    result.technicalDetails = `Browser network fetch failed (${err?.name === 'AbortError' ? 'Connection timed out' : err?.message || 'Connection refused'}). Start backend using '.\\sentra-service.ps1 start' or automatic Windows startup.`;
     return result;
+  } finally {
+    clearTimeout(t1Id);
   }
 
   // Step 2: Check PostgreSQL Database Health through FastAPI
   const t1 = performance.now();
+  const c2 = new AbortController();
+  const t2Id = setTimeout(() => c2.abort(), 3500);
   try {
     const dbRes = await fetch(`${API_BASE_URL}/api/health/db`, {
       headers: { 'Accept': 'application/json' },
+      signal: c2.signal,
     });
     result.databaseLatencyMs = Math.round(performance.now() - t1);
 
@@ -238,6 +246,8 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
     result.statusMessage = 'FastAPI backend is active, but checking PostgreSQL connectivity failed.';
     result.technicalDetails = dbErr?.message;
     return result;
+  } finally {
+    clearTimeout(t2Id);
   }
 }
 

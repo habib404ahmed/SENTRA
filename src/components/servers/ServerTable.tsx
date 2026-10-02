@@ -29,6 +29,9 @@ export const ServerTable: React.FC = () => {
     serversLoading,
     serversError,
     serversDiagnostic,
+    isAutoReconnecting,
+    autoReconnectCountdown,
+    autoReconnectAttempt,
     refreshServers,
     retryConnection,
     setSelectedServerId, 
@@ -103,6 +106,14 @@ export const ServerTable: React.FC = () => {
                 <p className="text-slate-400 font-mono text-[10px] mt-1 bg-slate-900/60 px-2 py-1 rounded border border-rose-500/20 inline-block">
                   Diagnostics: {serversDiagnostic.technicalDetails}
                 </p>
+              )}
+              {isAutoReconnecting && autoReconnectCountdown > 0 && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                    Auto-reconnecting in {autoReconnectCountdown}s (Attempt #{autoReconnectAttempt})
+                  </span>
+                </div>
               )}
             </div>
           </div>
@@ -264,6 +275,12 @@ export const ServerTable: React.FC = () => {
                               {serversDiagnostic.technicalDetails}
                             </div>
                           )}
+                          {isAutoReconnecting && autoReconnectCountdown > 0 && (
+                            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-[11px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                              Auto-reconnecting in {autoReconnectCountdown}s (Attempt #{autoReconnectAttempt})...
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <Button
@@ -413,9 +430,15 @@ export const ServerTable: React.FC = () => {
                   ? 'PostgreSQL Database Connection Failure'
                   : 'Failed to Retrieve Monitored Servers'}
               </div>
-              <p className="text-slate-400 text-xs max-w-md mx-auto mb-4 leading-relaxed">
+              <p className="text-slate-400 text-xs max-w-md mx-auto mb-3 leading-relaxed">
                 {serversError}
               </p>
+              {isAutoReconnecting && autoReconnectCountdown > 0 && (
+                <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-[11px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                  Auto-reconnecting in {autoReconnectCountdown}s (Attempt #{autoReconnectAttempt})...
+                </div>
+              )}
               <Button
                 variant="outline"
                 size="sm"

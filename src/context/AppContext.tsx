@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { MonitoredServer, ThreatAlert, NotificationItem, AlertStatus } from '@/types';
 import { sentraApi } from '@/services/api';
 import { 
@@ -53,6 +53,9 @@ interface AppContextType {
   serversLoading: boolean;
   serversError: string | null;
   serversDiagnostic: ConnectionDiagnosticResult | null;
+  isAutoReconnecting: boolean;
+  autoReconnectCountdown: number;
+  autoReconnectAttempt: number;
   
   // Toast notifications
   toast: ToastState;
@@ -101,6 +104,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [serversError, setServersError] = useState<string | null>(null);
   const [serversDiagnostic, setServersDiagnostic] = useState<ConnectionDiagnosticResult | null>(null);
 
+  // Toast notifications
+  const [toast, setToast] = useState<ToastState>({
+    show: false,
+    message: '',
+    type: 'info'
+  });
+
+  const showToast = useCallback((message: string, type: ToastState['type'] = 'info') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }));
+    }, 4500);
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(prev => ({ ...prev, show: false }));
+  }, []);
+
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [currentUser] = useState({
     name: 'Habib Ahmed',
@@ -110,29 +131,93 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     avatar: 'HA'
   });
 
-  const [toast, setToast] = useState<ToastState>({
-    show: false,
-    message: '',
-    type: 'info'
-  });
+  // Automatic connection recovery state
+  const [isAutoReconnecting, setIsAutoReconnecting] = useState(false);
+  const [autoReconnectCountdown, setAutoReconnectCountdown] = useState(0);
+  const [autoReconnectAttempt, setAutoReconnectAttempt] = useState(0);
 
-  const showToast = (message: string, type: ToastState['type'] = 'info') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast(prev => ({ ...prev, show: false }));
-    }, 4500);
-  };
+  const retryAttemptRef = useRef(0);
+  const autoRetryTimeoutRef = useRef<any>(null);
+  const countdownIntervalRef = useRef<any>(null);
+  const isRecoveringRef = useRef(false);
 
-  const hideToast = () => {
-    setToast(prev => ({ ...prev, show: false }));
-  };
+  const clearAutoRetryTimers = useCallback(() => {
+    if (autoRetryTimeoutRef.current) {
+      clearTimeout(autoRetryTimeoutRef.current);
+      autoRetryTimeoutRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setIsAutoReconnecting(false);
+    setAutoReconnectCountdown(0);
+  }, []);
+
+  const scheduleAutoReconnect = useCallback(() => {
+    clearAutoRetryTimers();
+    if (isRecoveringRef.current) return;
+
+    const backoffSchedule = [3, 5, 8, 12, 15];
+    const attempt = retryAttemptRef.current;
+    const delaySec = backoffSchedule[Math.min(attempt, backoffSchedule.length - 1)];
+
+    setIsAutoReconnecting(true);
+    setAutoReconnectAttempt(attempt + 1);
+    setAutoReconnectCountdown(delaySec);
+
+    let remaining = delaySec;
+    countdownIntervalRef.current = setInterval(() => {
+      remaining -= 1;
+      setAutoReconnectCountdown(remaining);
+      if (remaining <= 0 && countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    }, 1000);
+
+    autoRetryTimeoutRef.current = setTimeout(async () => {
+      if (isRecoveringRef.current) return;
+      isRecoveringRef.current = true;
+      try {
+        const diag = await checkSystemDiagnostics();
+        setServersDiagnostic(diag);
+
+        if (diag.backendOnline && diag.databaseOnline) {
+          clearAutoRetryTimers();
+          retryAttemptRef.current = 0;
+          try {
+            const fetched = await sentraApi.getServers();
+            setServers(fetched);
+            setServersError(null);
+            showToast('FastAPI backend and PostgreSQL reconnected successfully!', 'success');
+          } catch (fetchErr: any) {
+            setServersError(fetchErr?.message || 'Failed to fetch servers');
+            retryAttemptRef.current += 1;
+            scheduleAutoReconnect();
+          }
+        } else {
+          setServersError(diag.statusMessage);
+          retryAttemptRef.current += 1;
+          scheduleAutoReconnect();
+        }
+      } catch {
+        retryAttemptRef.current += 1;
+        scheduleAutoReconnect();
+      } finally {
+        isRecoveringRef.current = false;
+      }
+    }, delaySec * 1000);
+  }, [clearAutoRetryTimers]);
 
   const refreshServers = async () => {
     setServersLoading(true);
-    setServersError(null);
     try {
       const fetched = await sentraApi.getServers();
       setServers(fetched);
+      setServersError(null);
+      clearAutoRetryTimers();
+      retryAttemptRef.current = 0;
       setServersDiagnostic({
         backendOnline: true,
         databaseOnline: true,
@@ -141,18 +226,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       });
     } catch (err: any) {
       console.error('Failed to load monitored servers from API', err);
-      // Run diagnostic to pinpoint the exact failing layer
       const diag = await checkSystemDiagnostics();
       setServersDiagnostic(diag);
       const msg = diag.statusMessage || err?.message || 'Could not connect to FastAPI / PostgreSQL backend.';
       setServersError(msg);
       showToast(msg, 'error');
+      // Trigger automatic recovery countdown with backoff
+      scheduleAutoReconnect();
     } finally {
       setServersLoading(false);
     }
   };
 
   const retryConnection = async (): Promise<ConnectionDiagnosticResult> => {
+    clearAutoRetryTimers();
     setServersLoading(true);
     showToast('Diagnosing backend & database connection...', 'info');
     try {
@@ -164,12 +251,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const fetched = await sentraApi.getServers();
           setServers(fetched);
           setServersError(null);
+          retryAttemptRef.current = 0;
         } catch (fetchErr: any) {
           setServersError(fetchErr?.message || 'Failed to fetch servers');
+          scheduleAutoReconnect();
         }
       } else {
         setServersError(diag.statusMessage);
         showToast(`Diagnostic check: ${diag.statusMessage}`, 'error');
+        // Continue auto-reconnecting in the background
+        scheduleAutoReconnect();
       }
       return diag;
     } catch (err: any) {
@@ -183,11 +274,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setServersDiagnostic(fallback);
       setServersError(fallback.statusMessage);
       showToast(fallback.statusMessage, 'error');
+      scheduleAutoReconnect();
       return fallback;
     } finally {
       setServersLoading(false);
     }
   };
+
+  // Immediate retry on window focus or network reconnect when in error state
+  useEffect(() => {
+    const handleWake = () => {
+      if (serversError) {
+        retryConnection();
+      }
+    };
+    window.addEventListener('online', handleWake);
+    window.addEventListener('focus', handleWake);
+    return () => {
+      window.removeEventListener('online', handleWake);
+      window.removeEventListener('focus', handleWake);
+      clearAutoRetryTimers();
+    };
+  }, [serversError, clearAutoRetryTimers]);
 
 
   const refreshAllData = async () => {
@@ -388,6 +496,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         refreshServers,
         retryConnection,
         serversDiagnostic,
+        isAutoReconnecting,
+        autoReconnectCountdown,
+        autoReconnectAttempt,
       }}
     >
       {children}

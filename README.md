@@ -411,6 +411,101 @@ npm run build
 
 ---
 
+## 🔄 Windows Background Service & Automatic Startup Guide
+
+SENTRA provides automated background startup and self-healing lifecycle management on Windows. This eliminates the need to manually open a terminal window and run `uvicorn` every time your computer boots or you sign in.
+
+### Quick Start: Lifecycle Management Commands
+
+Use the unified lifecycle manager script (`sentra-service.ps1` or `sentra-service.bat`) from the project root:
+
+| Command | Batch Equivalent | Action |
+| :--- | :--- | :--- |
+| `.\sentra-service.ps1 start` | `.\sentra-service.bat start` | Starts FastAPI backend in background (windowless, detached) |
+| `.\sentra-service.ps1 stop` | `.\sentra-service.bat stop` | Gracefully terminates supervisor and backend processes |
+| `.\sentra-service.ps1 restart` | `.\sentra-service.bat restart` | Restarts the backend and reloads configuration |
+| `.\sentra-service.ps1 status` | `.\sentra-service.bat status` | Displays live health, latency, port, PID, DB, and startup task status |
+| `.\sentra-service.ps1 logs` | `.\sentra-service.bat logs` | Displays the last 40 lines of `backend/logs/backend.log` |
+| `.\sentra-service.ps1 logs -Follow` | `.\sentra-service.bat logs` | Streams live log output in real time |
+| `.\sentra-service.ps1 install` | `.\sentra-service.bat install` | Configures automatic background startup at logon / boot |
+| `.\sentra-service.ps1 uninstall` | `.\sentra-service.bat uninstall` | Removes the automatic startup task and shortcuts |
+
+---
+
+### How Automatic Startup Works
+
+SENTRA uses a dual-layer Windows startup architecture designed for zero friction:
+
+1. **User Logon Startup Shortcut (Zero-Admin Mode):**
+   * Configured in `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\SENTRA_Backend.lnk`.
+   * Automatically starts at user logon without requiring Windows Administrator elevation.
+   * Runs `backend/.venv/Scripts/pythonw.exe` executing `backend/scripts/server_supervisor.py` completely windowless.
+
+2. **Windows Task Scheduler Service (`SENTRA_Backend_Service`):**
+   * Registered via `Register-ScheduledTask` (run `sentra-service.ps1 install` in an Administrator PowerShell).
+   * Triggers automatically at logon with OS-level retry settings:
+     - `RestartCount = 5`
+     - `RestartInterval = 1 minute`
+     - `AllowStartIfOnBatteries = true`
+     - Windowless background execution without open terminal windows.
+
+3. **Background Supervisor & Self-Healing Crash Recovery:**
+   * Managed by `backend/scripts/server_supervisor.py`.
+   * **PID Tracking & Duplicate Prevention:** Detects if port 8000 is already active to prevent port collision or orphan instances.
+   * **Crash Detection & Auto-Restart:** Continuously monitors the Uvicorn child process. If the backend process crashes or is killed unexpectedly, the supervisor detects the termination and automatically restarts FastAPI with exponential backoff (0s → 2s → 4s → 8s → 15s).
+   * **Structured Logging:** All supervisor events, startup banners, request access logs, and Uvicorn tracebacks are logged with timestamps into `backend/logs/backend.log`.
+
+---
+
+### Managing PostgreSQL Automatic Startup on Windows
+
+FastAPI depends on PostgreSQL. Verify that PostgreSQL starts automatically as a Windows service:
+
+1. Check current PostgreSQL service status:
+   ```powershell
+   Get-Service *postgres* | Select-Object Name, Status, StartType
+   ```
+2. If `StartType` is `Manual`, configure it to start automatically with Windows (Run in Administrator PowerShell):
+   ```powershell
+   Set-Service -Name postgresql-x64-18 -StartupType Automatic
+   ```
+3. **Database Unavailability Resilience:**
+   * SENTRA's backend application lifespan handles temporary database unavailability gracefully. If Windows boots and FastAPI starts before PostgreSQL has finished initializing, FastAPI catches the initial connection delay without crashing permanently.
+   * SQLAlchemy connection pooling (`pool_pre_ping=True`) automatically re-establishes database connections as soon as PostgreSQL is ready.
+
+---
+
+### Dashboard Automatic Reconnection & Recovery
+
+The React frontend includes built-in connection diagnostics and self-healing recovery:
+- **Real-Time Health Checks:** Probes `/api/health` (FastAPI liveness) and `/api/health/db` (PostgreSQL connectivity) with a 3-second abort timeout.
+- **Header Status Pill:** Live indicator in the top navbar shows `BACKEND: ONLINE` (green pulse), `POSTGRES: CONNECTING` (amber pulse), or `BACKEND: OFFLINE` (red).
+- **Auto-Recovery Loop:** When the backend is offline, the dashboard displays an active countdown banner (`Auto-reconnecting in Xs (Attempt #N)...`) with exponential backoff (3s, 5s, 8s, 12s, 15s).
+- **Zero-Refresh Recovery:** As soon as the backend starts up, the dashboard automatically detects the live health check, refreshes monitored server telemetry, and clears error banners without requiring the user to refresh the page.
+- **Window Focus / Online Recovery:** Switching back to the browser tab or regaining network connectivity triggers an immediate diagnostic check.
+
+---
+
+### Optional Frontend Automatic Startup
+
+To have the React dashboard also start automatically on Windows boot, you can either:
+1. **Development Server Shortcut:** Create a shortcut in `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup` pointing to `npm run dev` in the project root.
+2. **Production Preview via PM2 / Service:** Build the production bundle with `npm run build` and serve via a lightweight Windows background process (e.g. `npx serve -s dist -l 5173`).
+
+---
+
+### Limitations & Troubleshooting
+
+- **Computer State:** The backend service and scheduled tasks only execute when the Windows computer is powered on and running. If the PC is shut down or in deep hibernation, the backend is naturally offline.
+- **Log Inspection:** If the backend fails to start, inspect `backend/logs/backend.log`:
+  ```powershell
+  .\sentra-service.ps1 logs
+  ```
+- **Port Conflicts:** If port 8000 is occupied by another application, edit `PORT=8000` in `backend/.env` and update the proxy in `vite.config.ts`.
+- **Manual Override:** You can stop and restart the service at any time without restarting Windows using `.\sentra-service.ps1 restart`.
+
+---
+
 ## 🔮 Future Roadmap (Post-Hackathon Extensions)
 
 - **Hardware Diode Transceiver Offload:** Zero-copy kernel bypass (DPDK / eBPF) for line-rate 10Gbps+ simplex fiber taps.
