@@ -146,7 +146,10 @@ def test_e2e_alert_deduplication_and_recurrence(db_session, test_server_id, test
     models = resolve_active_models(db_session)
     svc = DetectionService()
 
-    unique_ip = f"203.0.113.{int(time.time() * 100) % 200 + 20}"
+    import uuid
+    rand_suffix = (uuid.uuid4().int % 240) + 1
+    rand_subnet = (uuid.uuid4().int % 200) + 20
+    unique_ip = f"198.51.{rand_subnet}.{rand_suffix}"
     flow = TrafficFlowModel(
         import_id=test_import_id,
         server_id=server.id,

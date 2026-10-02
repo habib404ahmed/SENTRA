@@ -151,6 +151,9 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
       kind = 'auth_error';
     } else if (response.status === 404) {
       kind = 'endpoint_missing';
+      if (errorDetail === 'Not Found' || errorDetail === '404 Not Found') {
+        errorDetail = `Server API endpoint not found (HTTP 404) at ${url}. Check API route configuration.`;
+      }
     } else if (response.status === 422) {
       kind = 'validation_error';
     } else if (response.status === 503) {
@@ -194,16 +197,34 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
   const t1Id = setTimeout(() => c1.abort(), 3000);
   const healthUrl = buildApiUrl('/api/health');
   try {
-    const healthRes = await fetch(healthUrl, {
+    let healthRes = await fetch(healthUrl, {
       headers: { 'Accept': 'application/json' },
       signal: c1.signal,
     });
+
+    // Fallback: if /api/health returns 404, try /health alias
+    if (healthRes.status === 404) {
+      try {
+        const altUrl = API_BASE_URL ? `${API_BASE_URL}/health` : '/health';
+        const altRes = await fetch(altUrl, {
+          headers: { 'Accept': 'application/json' },
+          signal: c1.signal,
+        });
+        if (altRes.ok) {
+          healthRes = altRes;
+        }
+      } catch {}
+    }
+
     result.backendLatencyMs = Math.round(performance.now() - t0);
 
     if (!healthRes.ok) {
+      result.backendOnline = false;
       result.errorKind = healthRes.status === 404 ? 'endpoint_missing' : 'server_error';
-      result.statusMessage = `Backend responded with HTTP ${healthRes.status}. Health endpoint returned an error.`;
-      result.technicalDetails = `Status: ${healthRes.statusText}`;
+      result.statusMessage = healthRes.status === 404
+        ? `Backend API server is reachable, but health route returned HTTP 404 Not Found at ${healthUrl}.`
+        : `Backend responded with HTTP ${healthRes.status}. Health endpoint returned an error.`;
+      result.technicalDetails = `Status: ${healthRes.status} ${healthRes.statusText}`;
       return result;
     }
 
@@ -211,6 +232,7 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
   } catch (err: any) {
     const targetDesc = API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'configured origin');
     const isLocal = isLocalhostApi(API_BASE_URL);
+    result.backendOnline = false;
     result.errorKind = 'backend_offline';
     result.statusMessage = `Backend API server is offline or unreachable at ${targetDesc}.`;
     result.technicalDetails = isLocal
@@ -227,10 +249,25 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
   const t2Id = setTimeout(() => c2.abort(), 3500);
   const dbHealthUrl = buildApiUrl('/api/health/db');
   try {
-    const dbRes = await fetch(dbHealthUrl, {
+    let dbRes = await fetch(dbHealthUrl, {
       headers: { 'Accept': 'application/json' },
       signal: c2.signal,
     });
+
+    // Fallback: if /api/health/db returns 404, try /health/db alias
+    if (dbRes.status === 404) {
+      try {
+        const altDbUrl = API_BASE_URL ? `${API_BASE_URL}/health/db` : '/health/db';
+        const altDbRes = await fetch(altDbUrl, {
+          headers: { 'Accept': 'application/json' },
+          signal: c2.signal,
+        });
+        if (altDbRes.ok || altDbRes.status === 503) {
+          dbRes = altDbRes;
+        }
+      } catch {}
+    }
+
     result.databaseLatencyMs = Math.round(performance.now() - t1);
 
     if (dbRes.ok) {
@@ -242,6 +279,7 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
       }
     }
 
+    result.databaseOnline = false;
     result.errorKind = 'database_offline';
     let detail = 'Database connection failed';
     try {
@@ -252,6 +290,7 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
     result.technicalDetails = detail;
     return result;
   } catch (dbErr: any) {
+    result.databaseOnline = false;
     result.errorKind = 'database_offline';
     result.statusMessage = 'FastAPI backend is active, but checking PostgreSQL connectivity failed.';
     result.technicalDetails = dbErr?.message;

@@ -88,7 +88,7 @@ export const ServerTable: React.FC = () => {
                     : serversDiagnostic?.errorKind === 'database_offline'
                     ? 'PostgreSQL Database Connection Warning:'
                     : serversDiagnostic?.errorKind === 'endpoint_missing'
-                    ? 'Server API Endpoint Missing (404):'
+                    ? 'Server API Route Not Found (404):'
                     : 'Backend API Connectivity Warning:'}
                 </span>
                 <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] px-1.5 py-0.5 rounded font-mono">
@@ -96,6 +96,8 @@ export const ServerTable: React.FC = () => {
                     ? 'GATEWAY OFFLINE'
                     : serversDiagnostic?.errorKind === 'database_offline'
                     ? 'POSTGRES DISCONNECTED'
+                    : serversDiagnostic?.errorKind === 'endpoint_missing'
+                    ? 'ROUTE 404'
                     : 'API ERROR'}
                 </span>
               </div>
@@ -265,6 +267,8 @@ export const ServerTable: React.FC = () => {
                               ? 'FastAPI Backend Service Offline'
                               : serversDiagnostic?.errorKind === 'database_offline'
                               ? 'PostgreSQL Database Connection Failure'
+                              : serversDiagnostic?.errorKind === 'endpoint_missing'
+                              ? 'Server API Route Not Found (404)'
                               : 'Failed to Retrieve Monitored Servers'}
                           </div>
                           <p className="text-slate-400 text-xs mt-1 leading-relaxed">

@@ -10,10 +10,11 @@ from app.models.server import MonitoredServerModel
 from app.schemas.server import ServerCreate, ServerUpdate, ServerResponse
 
 logger = logging.getLogger("sentra.servers")
-router = APIRouter(prefix="/api/servers", tags=["Monitored Servers"])
+router = APIRouter(tags=["Monitored Servers"])
 
 
 @router.get("", response_model=List[ServerResponse], summary="List all monitored servers")
+@router.get("/", response_model=List[ServerResponse], include_in_schema=False)
 def list_servers(db: Session = Depends(get_db)):
     """
     Retrieve all registered monitored servers ordered by creation time descending.
@@ -55,6 +56,7 @@ def get_server(server_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ServerResponse, status_code=status.HTTP_201_CREATED, summary="Register a monitored server")
+@router.post("/", response_model=ServerResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_server(payload: ServerCreate, db: Session = Depends(get_db)):
     """
     Register a new monitored server with passive flow tap configuration.

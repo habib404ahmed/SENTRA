@@ -6,7 +6,8 @@ import {
   UpdateServerPayload, 
   API_BASE_URL, 
   ConnectionDiagnosticResult, 
-  checkSystemDiagnostics 
+  checkSystemDiagnostics,
+  ApiError
 } from '@/services/servers';
 
 export type PageId = 
@@ -181,7 +182,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isRecoveringRef.current = true;
       try {
         const diag = await checkSystemDiagnostics();
-        setServersDiagnostic(diag);
 
         if (diag.backendOnline && diag.databaseOnline) {
           clearAutoRetryTimers();
@@ -190,13 +190,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const fetched = await sentraApi.getServers();
             setServers(fetched);
             setServersError(null);
+            setServersDiagnostic(diag);
             showToast('FastAPI backend and PostgreSQL reconnected successfully!', 'success');
           } catch (fetchErr: any) {
-            setServersError(fetchErr?.message || 'Failed to fetch servers');
+            diag.errorKind = fetchErr instanceof ApiError ? fetchErr.kind : (fetchErr?.status === 404 ? 'endpoint_missing' : 'server_error');
+            diag.statusMessage = fetchErr?.message || 'Failed to fetch servers';
+            diag.technicalDetails = fetchErr?.details ? JSON.stringify(fetchErr.details) : `Endpoint error: ${fetchErr?.status || 'Unknown'}`;
+            setServersDiagnostic(diag);
+            setServersError(diag.statusMessage);
             retryAttemptRef.current += 1;
             scheduleAutoReconnect();
           }
         } else {
+          setServersDiagnostic(diag);
           setServersError(diag.statusMessage);
           retryAttemptRef.current += 1;
           scheduleAutoReconnect();
@@ -227,8 +233,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (err: any) {
       console.error('Failed to load monitored servers from API', err);
       const diag = await checkSystemDiagnostics();
+
+      // If backend and database are healthy according to liveness/readiness probes,
+      // but getServers failed (e.g. 404 route error), maintain backendOnline = true
+      if (diag.backendOnline && diag.databaseOnline) {
+        diag.errorKind = err instanceof ApiError ? err.kind : (err?.status === 404 ? 'endpoint_missing' : 'server_error');
+        diag.statusMessage = err?.message || 'Failed to load monitored servers';
+        diag.technicalDetails = err?.details ? JSON.stringify(err.details) : `HTTP ${err?.status || 'Error'}`;
+      }
+
       setServersDiagnostic(diag);
-      const msg = diag.statusMessage || err?.message || 'Could not connect to FastAPI / PostgreSQL backend.';
+      const msg = err?.message || diag.statusMessage || 'Could not connect to FastAPI / PostgreSQL backend.';
       setServersError(msg);
       showToast(msg, 'error');
       // Trigger automatic recovery countdown with backoff
@@ -244,7 +259,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     showToast('Diagnosing backend & database connection...', 'info');
     try {
       const diag = await checkSystemDiagnostics();
-      setServersDiagnostic(diag);
       if (diag.backendOnline && diag.databaseOnline) {
         showToast('Connectivity verified! Loading monitored servers from PostgreSQL...', 'success');
         try {
@@ -252,11 +266,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           setServers(fetched);
           setServersError(null);
           retryAttemptRef.current = 0;
+          setServersDiagnostic(diag);
         } catch (fetchErr: any) {
-          setServersError(fetchErr?.message || 'Failed to fetch servers');
+          diag.errorKind = fetchErr instanceof ApiError ? fetchErr.kind : (fetchErr?.status === 404 ? 'endpoint_missing' : 'server_error');
+          diag.statusMessage = fetchErr?.message || 'Failed to fetch servers';
+          diag.technicalDetails = fetchErr?.details ? JSON.stringify(fetchErr.details) : undefined;
+          setServersDiagnostic(diag);
+          setServersError(diag.statusMessage);
           scheduleAutoReconnect();
         }
       } else {
+        setServersDiagnostic(diag);
         setServersError(diag.statusMessage);
         showToast(`Diagnostic check: ${diag.statusMessage}`, 'error');
         // Continue auto-reconnecting in the background

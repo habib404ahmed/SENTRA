@@ -99,8 +99,30 @@ elif not settings.is_production:
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
-# Register routers
-app.include_router(servers_router)
+
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+
+class PathNormalizationMiddleware(BaseHTTPMiddleware):
+    """
+    Normalizes request paths to eliminate accidental duplicate '/api/api/' segments
+    caused by client baseURL misconfiguration or double-prefixing reverse proxies.
+    """
+    async def dispatch(self, request: Request, call_next):
+        path = request.scope.get("path", "")
+        if path.startswith("/api/api/"):
+            request.scope["path"] = "/api/" + path[len("/api/api/"):]
+        return await call_next(request)
+
+
+app.add_middleware(PathNormalizationMiddleware)
+
+
+# Register routers - mount servers with /api/servers and /servers alias
+app.include_router(servers_router, prefix="/api/servers")
+app.include_router(servers_router, prefix="/servers", include_in_schema=False)
+
 app.include_router(alerts_router)
 app.include_router(ingestion_router)
 app.include_router(flows_router)
@@ -117,26 +139,29 @@ def root():
         "phase": "Phase 6 (Threat Detection, Alert Engine, and Dashboard Integration)",
         "version": "0.6.0",
         "status": "online",
-        "docs": "/docs"
+        "docs": "/docs" if settings.DOCS_ENABLED else None
     }
 
 
-@app.get("/api/health", tags=["Health"])
+@app.get("/api/health", tags=["Health"], summary="API Service Liveness Check")
+@app.get("/health", tags=["Health"], summary="API Service Liveness Check (Alias)", include_in_schema=False)
 def health_check():
     """
     Standard API liveness check.
+    Returns HTTP 200 when the FastAPI application is running.
     """
     return {
         "status": "ok"
     }
 
 
-
-@app.get("/api/health/db", tags=["Health"])
+@app.get("/api/health/db", tags=["Health"], summary="PostgreSQL Connectivity Check")
+@app.get("/health/db", tags=["Health"], summary="PostgreSQL Connectivity Check (Alias)", include_in_schema=False)
 def database_health_check(db: Session = Depends(get_db)):
     """
     Database connection verification check.
     Executes a lightweight query against PostgreSQL to ensure the session is active.
+    Returns 200 with status='ok' when connected, or 503 without exposing credentials.
     """
     try:
         db.execute(text("SELECT 1"))
@@ -152,7 +177,36 @@ def database_health_check(db: Session = Depends(get_db)):
             content={
                 "status": "error",
                 "database": "disconnected",
-                "detail": f"Database connection failure: {str(exc)}"
+                "detail": "Database connection failure: PostgreSQL service is unavailable or rejecting connections."
             }
         )
+
+
+@app.get("/api/health/ready", tags=["Health"], summary="Full System Readiness Check")
+@app.get("/health/ready", tags=["Health"], summary="Full System Readiness Check (Alias)", include_in_schema=False)
+def system_readiness_check(db: Session = Depends(get_db)):
+    """
+    Full readiness probe for container orchestrators and deployment load balancers.
+    Verifies both FastAPI runtime and PostgreSQL database readiness.
+    """
+    try:
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "api": "ok",
+            "database": "connected",
+            "version": "0.6.0"
+        }
+    except Exception as exc:
+        logger.error("Readiness check failed (database unreachable): %s", exc, exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "degraded",
+                "api": "ok",
+                "database": "disconnected",
+                "detail": "Database connection failure: PostgreSQL service is unavailable or rejecting connections."
+            }
+        )
+
 
