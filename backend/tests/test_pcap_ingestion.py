@@ -79,7 +79,9 @@ def create_synthetic_pcap_bytes() -> bytes:
 def test_health_endpoints():
     res = client.get("/api/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok"}
+    data = res.json()
+    assert data["status"] == "ok"
+    assert data.get("service") == "sentra-api"
 
     res_db = client.get("/api/health/db")
     assert res_db.status_code == 200

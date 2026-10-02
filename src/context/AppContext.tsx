@@ -226,6 +226,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       retryAttemptRef.current = 0;
       setServersDiagnostic({
         backendOnline: true,
+        healthRouteValid: true,
         databaseOnline: true,
         statusMessage: 'FastAPI backend and PostgreSQL database are healthy and connected.',
         timestamp: new Date().toISOString()
@@ -236,7 +237,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       // If backend and database are healthy according to liveness/readiness probes,
       // but getServers failed (e.g. 404 route error), maintain backendOnline = true
-      if (diag.backendOnline && diag.databaseOnline) {
+      if (diag.backendOnline && diag.healthRouteValid && diag.databaseOnline) {
         diag.errorKind = err instanceof ApiError ? err.kind : (err?.status === 404 ? 'endpoint_missing' : 'server_error');
         diag.statusMessage = err?.message || 'Failed to load monitored servers';
         diag.technicalDetails = err?.details ? JSON.stringify(err.details) : `HTTP ${err?.status || 'Error'}`;
@@ -286,6 +287,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (err: any) {
       const fallback: ConnectionDiagnosticResult = {
         backendOnline: false,
+        healthRouteValid: false,
         databaseOnline: false,
         errorKind: 'unknown',
         statusMessage: err?.message || 'Diagnostic connection check failed.',

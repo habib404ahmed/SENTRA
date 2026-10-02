@@ -142,21 +142,30 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Backend & DB Health Indicator Pill */}
-        {serversDiagnostic?.backendOnline && serversDiagnostic?.databaseOnline ? (
+        {serversDiagnostic?.backendOnline && serversDiagnostic?.healthRouteValid && serversDiagnostic?.databaseOnline ? (
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]" title="FastAPI and PostgreSQL database are online and connected">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>BACKEND: ONLINE</span>
           </div>
-        ) : serversDiagnostic?.backendOnline && !serversDiagnostic?.databaseOnline ? (
+        ) : serversDiagnostic?.backendOnline && serversDiagnostic?.healthRouteValid && !serversDiagnostic?.databaseOnline ? (
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-[11px]" title="FastAPI is online, but PostgreSQL is reconnecting">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
             <span>POSTGRES: CONNECTING</span>
           </div>
+        ) : serversDiagnostic?.backendOnline && !serversDiagnostic?.healthRouteValid ? (
+          <button 
+            onClick={() => retryConnection()}
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 font-mono text-[11px] transition-colors"
+            title="Backend is reachable, but the health route returned HTTP 404. Click to diagnose & retry."
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span>ROUTE 404: MISCONFIGURED {isAutoReconnecting && autoReconnectCountdown > 0 ? `(${autoReconnectCountdown}s)` : ''}</span>
+          </button>
         ) : serversDiagnostic && !serversDiagnostic.backendOnline ? (
           <button 
             onClick={() => retryConnection()}
             className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500/20 font-mono text-[11px] transition-colors"
-            title="FastAPI backend is offline. Click to diagnose & retry."
+            title="FastAPI backend is offline or unreachable. Click to diagnose & retry."
           >
             <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
             <span>BACKEND: OFFLINE {isAutoReconnecting && autoReconnectCountdown > 0 ? `(${autoReconnectCountdown}s)` : ''}</span>

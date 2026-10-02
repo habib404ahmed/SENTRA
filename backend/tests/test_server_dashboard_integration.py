@@ -35,7 +35,9 @@ def test_health_and_db_connectivity():
     # 1. API Liveness
     res = client.get("/api/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok"}
+    data = res.json()
+    assert data["status"] == "ok"
+    assert data.get("service") == "sentra-api"
 
     # 2. Database Connectivity
     res_db = client.get("/api/health/db")

@@ -143,20 +143,21 @@ def root():
     }
 
 
-@app.get("/api/health", tags=["Health"], summary="API Service Liveness Check")
-@app.get("/health", tags=["Health"], summary="API Service Liveness Check (Alias)", include_in_schema=False)
+@app.api_route("/api/health", methods=["GET", "HEAD"], tags=["Health"], summary="API Service Liveness Check")
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Health"], summary="API Service Liveness Check (Alias)", include_in_schema=False)
 def health_check():
     """
     Standard API liveness check.
-    Returns HTTP 200 when the FastAPI application is running.
+    Returns HTTP 200 with service identifier when the FastAPI application is operational.
     """
     return {
-        "status": "ok"
+        "status": "ok",
+        "service": "sentra-api"
     }
 
 
-@app.get("/api/health/db", tags=["Health"], summary="PostgreSQL Connectivity Check")
-@app.get("/health/db", tags=["Health"], summary="PostgreSQL Connectivity Check (Alias)", include_in_schema=False)
+@app.api_route("/api/health/db", methods=["GET", "HEAD"], tags=["Health"], summary="PostgreSQL Connectivity Check")
+@app.api_route("/health/db", methods=["GET", "HEAD"], tags=["Health"], summary="PostgreSQL Connectivity Check (Alias)", include_in_schema=False)
 def database_health_check(db: Session = Depends(get_db)):
     """
     Database connection verification check.

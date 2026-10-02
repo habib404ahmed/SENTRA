@@ -15,6 +15,7 @@ export type ApiErrorKind =
 
 export interface ConnectionDiagnosticResult {
   backendOnline: boolean;
+  healthRouteValid: boolean;
   databaseOnline: boolean;
   backendLatencyMs?: number;
   databaseLatencyMs?: number;
@@ -186,6 +187,7 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
 export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResult> {
   const result: ConnectionDiagnosticResult = {
     backendOnline: false,
+    healthRouteValid: false,
     databaseOnline: false,
     statusMessage: '',
     timestamp: new Date().toISOString(),
@@ -218,21 +220,33 @@ export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResu
 
     result.backendLatencyMs = Math.round(performance.now() - t0);
 
+    // Any HTTP response from the server proves the backend service IS reachable and online!
+    result.backendOnline = true;
+
     if (!healthRes.ok) {
-      result.backendOnline = false;
+      result.healthRouteValid = false;
       result.errorKind = healthRes.status === 404 ? 'endpoint_missing' : 'server_error';
       result.statusMessage = healthRes.status === 404
-        ? `Backend API server is reachable, but health route returned HTTP 404 Not Found at ${healthUrl}.`
+        ? `Backend API server is reachable, but health-check route returned HTTP 404 Not Found at ${healthUrl}. Route is missing or misconfigured.`
         : `Backend responded with HTTP ${healthRes.status}. Health endpoint returned an error.`;
-      result.technicalDetails = `Status: ${healthRes.status} ${healthRes.statusText}`;
+      result.technicalDetails = `HTTP ${healthRes.status} ${healthRes.statusText}`;
       return result;
     }
 
-    result.backendOnline = true;
+    // HTTP 200 received
+    try {
+      const data = await healthRes.json();
+      if (data.status === 'ok') {
+        result.healthRouteValid = true;
+      }
+    } catch {
+      result.healthRouteValid = true;
+    }
   } catch (err: any) {
     const targetDesc = API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'configured origin');
     const isLocal = isLocalhostApi(API_BASE_URL);
     result.backendOnline = false;
+    result.healthRouteValid = false;
     result.errorKind = 'backend_offline';
     result.statusMessage = `Backend API server is offline or unreachable at ${targetDesc}.`;
     result.technicalDetails = isLocal

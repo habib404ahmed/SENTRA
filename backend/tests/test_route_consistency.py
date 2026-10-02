@@ -31,6 +31,7 @@ def test_health_endpoints_and_aliases():
         assert res.status_code == 200, f"Expected 200 for {path}, got {res.status_code}"
         data = res.json()
         assert data.get("status") == "ok"
+        assert data.get("service") == "sentra-api"
 
 
 def test_database_health_endpoints_and_aliases():
@@ -131,7 +132,8 @@ def test_database_outage_distinguished_from_api():
     # API liveness check does not touch database, always returns 200
     live_res = client.get("/api/health")
     assert live_res.status_code == 200
-    assert live_res.json() == {"status": "ok"}
+    assert live_res.json().get("status") == "ok"
+    assert live_res.json().get("service") == "sentra-api"
 
     # Simulate database outage for db check
     class BrokenSession:
