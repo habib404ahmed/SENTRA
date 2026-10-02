@@ -28,7 +28,9 @@ export const ServerTable: React.FC = () => {
     servers, 
     serversLoading,
     serversError,
+    serversDiagnostic,
     refreshServers,
+    retryConnection,
     setSelectedServerId, 
     setIsAddServerOpen, 
     toggleServerMonitoring,
@@ -70,22 +72,49 @@ export const ServerTable: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Database Connection Status Banner if Error */}
+      {/* Diagnostic Connection Status Banner if Error */}
       {serversError && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center justify-between gap-3 text-rose-300 text-xs">
-          <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-rose-300 text-xs">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-rose-200">PostgreSQL Connection Warning:</span> {serversError}
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-rose-200">
+                  {serversDiagnostic?.errorKind === 'backend_offline'
+                    ? 'FastAPI Backend Service Offline:'
+                    : serversDiagnostic?.errorKind === 'database_offline'
+                    ? 'PostgreSQL Database Connection Warning:'
+                    : serversDiagnostic?.errorKind === 'endpoint_missing'
+                    ? 'Server API Endpoint Missing (404):'
+                    : 'Backend API Connectivity Warning:'}
+                </span>
+                <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] px-1.5 py-0.5 rounded font-mono">
+                  {serversDiagnostic?.errorKind === 'backend_offline'
+                    ? 'GATEWAY OFFLINE'
+                    : serversDiagnostic?.errorKind === 'database_offline'
+                    ? 'POSTGRES DISCONNECTED'
+                    : 'API ERROR'}
+                </span>
+              </div>
+              <p className="text-slate-300 text-[11px] mt-1">
+                {serversError}
+              </p>
+              {serversDiagnostic?.technicalDetails && (
+                <p className="text-slate-400 font-mono text-[10px] mt-1 bg-slate-900/60 px-2 py-1 rounded border border-rose-500/20 inline-block">
+                  Diagnostics: {serversDiagnostic.technicalDetails}
+                </p>
+              )}
             </div>
           </div>
           <Button
             variant="outline"
             size="sm"
-            icon={<RefreshCw className="w-3.5 h-3.5" />}
-            onClick={() => refreshServers()}
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${serversLoading ? 'animate-spin' : ''}`} />}
+            onClick={() => retryConnection()}
+            disabled={serversLoading}
+            className="shrink-0 self-end md:self-auto"
           >
-            Retry Connection
+            {serversLoading ? 'Diagnosing...' : 'Retry Connection'}
           </Button>
         </div>
       )}
@@ -212,7 +241,45 @@ export const ServerTable: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
-                {filteredServers.length === 0 ? (
+                {serversError ? (
+                  <tr>
+                    <td colSpan={9} className="py-12 text-center text-xs">
+                      <div className="flex flex-col items-center justify-center gap-3 max-w-lg mx-auto">
+                        <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                          <AlertTriangle className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <div className="text-slate-100 font-semibold text-sm">
+                            {serversDiagnostic?.errorKind === 'backend_offline'
+                              ? 'FastAPI Backend Service Offline'
+                              : serversDiagnostic?.errorKind === 'database_offline'
+                              ? 'PostgreSQL Database Connection Failure'
+                              : 'Failed to Retrieve Monitored Servers'}
+                          </div>
+                          <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                            {serversError}
+                          </p>
+                          {serversDiagnostic?.technicalDetails && (
+                            <div className="mt-2 p-2 rounded bg-slate-900 border border-rose-500/20 text-slate-300 font-mono text-[11px] text-left">
+                              {serversDiagnostic.technicalDetails}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<RefreshCw className={`w-3.5 h-3.5 ${serversLoading ? 'animate-spin' : ''}`} />}
+                            onClick={() => retryConnection()}
+                            disabled={serversLoading}
+                          >
+                            Diagnose & Retry Connection
+                          </Button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredServers.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center text-xs text-slate-500">
                       <div className="flex flex-col items-center justify-center gap-2">
@@ -334,9 +401,46 @@ export const ServerTable: React.FC = () => {
       ) : (
         /* Cards View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredServers.length === 0 ? (
+          {serversError ? (
+            <div className="col-span-full soc-card p-12 bg-background-surface/80 border border-rose-500/30 rounded-xl text-center text-xs">
+              <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mx-auto mb-3">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-semibold text-slate-100 mb-1">
+                {serversDiagnostic?.errorKind === 'backend_offline'
+                  ? 'FastAPI Backend Service Offline'
+                  : serversDiagnostic?.errorKind === 'database_offline'
+                  ? 'PostgreSQL Database Connection Failure'
+                  : 'Failed to Retrieve Monitored Servers'}
+              </div>
+              <p className="text-slate-400 text-xs max-w-md mx-auto mb-4 leading-relaxed">
+                {serversError}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<RefreshCw className={`w-3.5 h-3.5 ${serversLoading ? 'animate-spin' : ''}`} />}
+                onClick={() => retryConnection()}
+                disabled={serversLoading}
+              >
+                Diagnose & Retry Connection
+              </Button>
+            </div>
+          ) : filteredServers.length === 0 ? (
             <div className="col-span-full soc-card p-12 bg-background-surface/80 border border-border rounded-xl text-center text-xs text-slate-500">
-              No matching monitored servers found.
+              <div className="flex flex-col items-center justify-center gap-2">
+                <Database className="w-8 h-8 text-slate-600 mb-1" />
+                <span className="text-slate-400 font-medium">No matching monitored servers found in PostgreSQL database.</span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Plus className="w-3.5 h-3.5" />}
+                  onClick={() => setIsAddServerOpen(true)}
+                  className="mt-2"
+                >
+                  Register First Server
+                </Button>
+              </div>
             </div>
           ) : (
             filteredServers.map((server) => (

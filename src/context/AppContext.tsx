@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { MonitoredServer, ThreatAlert, NotificationItem, AlertStatus } from '@/types';
 import { sentraApi } from '@/services/api';
-import { CreateServerPayload, UpdateServerPayload, API_BASE_URL } from '@/services/servers';
+import { 
+  CreateServerPayload, 
+  UpdateServerPayload, 
+  API_BASE_URL, 
+  ConnectionDiagnosticResult, 
+  checkSystemDiagnostics 
+} from '@/services/servers';
 
 export type PageId = 
   | 'overview' 
@@ -46,6 +52,7 @@ interface AppContextType {
   loading: boolean;
   serversLoading: boolean;
   serversError: string | null;
+  serversDiagnostic: ConnectionDiagnosticResult | null;
   
   // Toast notifications
   toast: ToastState;
@@ -74,6 +81,7 @@ interface AppContextType {
   markAllNotificationsAsRead: () => Promise<void>;
   refreshAllData: () => Promise<void>;
   refreshServers: () => Promise<void>;
+  retryConnection: () => Promise<ConnectionDiagnosticResult>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -91,6 +99,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [loading, setLoading] = useState(true);
   const [serversLoading, setServersLoading] = useState(false);
   const [serversError, setServersError] = useState<string | null>(null);
+  const [serversDiagnostic, setServersDiagnostic] = useState<ConnectionDiagnosticResult | null>(null);
 
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [currentUser] = useState({
@@ -124,15 +133,62 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const fetched = await sentraApi.getServers();
       setServers(fetched);
+      setServersDiagnostic({
+        backendOnline: true,
+        databaseOnline: true,
+        statusMessage: 'FastAPI backend and PostgreSQL database are healthy and connected.',
+        timestamp: new Date().toISOString()
+      });
     } catch (err: any) {
       console.error('Failed to load monitored servers from API', err);
-      const msg = err?.message || 'Could not connect to FastAPI / PostgreSQL backend.';
+      // Run diagnostic to pinpoint the exact failing layer
+      const diag = await checkSystemDiagnostics();
+      setServersDiagnostic(diag);
+      const msg = diag.statusMessage || err?.message || 'Could not connect to FastAPI / PostgreSQL backend.';
       setServersError(msg);
-      showToast(`Database API Error: ${msg}`, 'error');
+      showToast(msg, 'error');
     } finally {
       setServersLoading(false);
     }
   };
+
+  const retryConnection = async (): Promise<ConnectionDiagnosticResult> => {
+    setServersLoading(true);
+    showToast('Diagnosing backend & database connection...', 'info');
+    try {
+      const diag = await checkSystemDiagnostics();
+      setServersDiagnostic(diag);
+      if (diag.backendOnline && diag.databaseOnline) {
+        showToast('Connectivity verified! Loading monitored servers from PostgreSQL...', 'success');
+        try {
+          const fetched = await sentraApi.getServers();
+          setServers(fetched);
+          setServersError(null);
+        } catch (fetchErr: any) {
+          setServersError(fetchErr?.message || 'Failed to fetch servers');
+        }
+      } else {
+        setServersError(diag.statusMessage);
+        showToast(`Diagnostic check: ${diag.statusMessage}`, 'error');
+      }
+      return diag;
+    } catch (err: any) {
+      const fallback: ConnectionDiagnosticResult = {
+        backendOnline: false,
+        databaseOnline: false,
+        errorKind: 'unknown',
+        statusMessage: err?.message || 'Diagnostic connection check failed.',
+        timestamp: new Date().toISOString(),
+      };
+      setServersDiagnostic(fallback);
+      setServersError(fallback.statusMessage);
+      showToast(fallback.statusMessage, 'error');
+      return fallback;
+    } finally {
+      setServersLoading(false);
+    }
+  };
+
 
   const refreshAllData = async () => {
     try {
@@ -330,6 +386,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         markAllNotificationsAsRead,
         refreshAllData,
         refreshServers,
+        retryConnection,
+        serversDiagnostic,
       }}
     >
       {children}

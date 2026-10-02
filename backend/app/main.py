@@ -1,7 +1,11 @@
+import logging
 from fastapi import FastAPI, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+
+logger = logging.getLogger("sentra.api")
 
 from app.config import settings
 from app.database import get_db, SessionLocal
@@ -74,6 +78,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -111,6 +116,7 @@ def health_check():
     }
 
 
+
 @app.get("/api/health/db", tags=["Health"])
 def database_health_check(db: Session = Depends(get_db)):
     """
@@ -125,8 +131,13 @@ def database_health_check(db: Session = Depends(get_db)):
             "engine": "PostgreSQL"
         }
     except Exception as exc:
-        return {
-            "status": "error",
-            "database": "disconnected",
-            "detail": str(exc)
-        }, status.HTTP_503_SERVICE_UNAVAILABLE
+        logger.error("PostgreSQL database health check failed: %s", exc, exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "error",
+                "database": "disconnected",
+                "detail": f"Database connection failure: {str(exc)}"
+            }
+        )
+

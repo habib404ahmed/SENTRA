@@ -1,6 +1,29 @@
 import { MonitoredServer, ServerEnvironment, TrafficSourceType } from '@/types';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL !== undefined && import.meta.env.VITE_API_BASE_URL !== '')
+  ? import.meta.env.VITE_API_BASE_URL
+  : 'http://localhost:8000';
+
+export type ApiErrorKind = 
+  | 'backend_offline' 
+  | 'database_offline' 
+  | 'auth_error' 
+  | 'endpoint_missing' 
+  | 'invalid_response' 
+  | 'server_error' 
+  | 'validation_error' 
+  | 'unknown';
+
+export interface ConnectionDiagnosticResult {
+  backendOnline: boolean;
+  databaseOnline: boolean;
+  backendLatencyMs?: number;
+  databaseLatencyMs?: number;
+  errorKind?: ApiErrorKind;
+  statusMessage: string;
+  technicalDetails?: string;
+  timestamp: string;
+}
 
 export interface BackendServer {
   id: number;
@@ -71,37 +94,151 @@ export function mapBackendToMonitoredServer(server: BackendServer): MonitoredSer
 
 export class ApiError extends Error {
   status: number;
+  kind: ApiErrorKind;
   details?: any;
 
-  constructor(message: string, status: number, details?: any) {
+  constructor(message: string, status: number, kind: ApiErrorKind = 'unknown', details?: any) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.kind = kind;
     this.details = details;
   }
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
+/**
+ * Core fetch wrapper with resilient network error classification
+ */
+export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  let response: Response;
+
+  try {
+    response = await fetch(url, options);
+  } catch (err: any) {
+    // Network error: backend process offline, DNS failed, or connection refused
+    throw new ApiError(
+      `FastAPI backend service is offline or unreachable at ${API_BASE_URL}. Ensure the backend server is running.`,
+      0,
+      'backend_offline',
+      err?.message
+    );
+  }
+
   if (!response.ok) {
     let errorDetail = 'API request failed';
+    let rawJson: any = null;
+
     try {
-      const errorJson = await response.json();
-      if (typeof errorJson.detail === 'string') {
-        errorDetail = errorJson.detail;
-      } else if (Array.isArray(errorJson.detail)) {
-        errorDetail = errorJson.detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
-      } else if (errorJson.message) {
-        errorDetail = errorJson.message;
+      rawJson = await response.json();
+      if (typeof rawJson.detail === 'string') {
+        errorDetail = rawJson.detail;
+      } else if (Array.isArray(rawJson.detail)) {
+        errorDetail = rawJson.detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
+      } else if (rawJson.message) {
+        errorDetail = rawJson.message;
       }
     } catch {
       errorDetail = `${response.status} ${response.statusText}`;
     }
-    throw new ApiError(errorDetail, response.status);
+
+    let kind: ApiErrorKind = 'unknown';
+    if (response.status === 401 || response.status === 403) {
+      kind = 'auth_error';
+    } else if (response.status === 404) {
+      kind = 'endpoint_missing';
+    } else if (response.status === 422) {
+      kind = 'validation_error';
+    } else if (response.status === 503) {
+      kind = 'database_offline';
+    } else if (response.status >= 500) {
+      if (errorDetail.toLowerCase().includes('database') || errorDetail.toLowerCase().includes('postgresql')) {
+        kind = 'database_offline';
+      } else {
+        kind = 'server_error';
+      }
+    }
+
+    throw new ApiError(errorDetail, response.status, kind, rawJson);
   }
+
   if (response.status === 204) {
     return {} as T;
   }
-  return response.json();
+
+  try {
+    return await response.json();
+  } catch (jsonErr: any) {
+    throw new ApiError('Received invalid JSON payload from server', response.status, 'invalid_response', jsonErr?.message);
+  }
+}
+
+/**
+ * Diagnostics utility: independently verifies FastAPI liveness and PostgreSQL database connectivity
+ */
+export async function checkSystemDiagnostics(): Promise<ConnectionDiagnosticResult> {
+  const result: ConnectionDiagnosticResult = {
+    backendOnline: false,
+    databaseOnline: false,
+    statusMessage: '',
+    timestamp: new Date().toISOString(),
+  };
+
+  // Step 1: Check FastAPI Backend Liveness
+  const t0 = performance.now();
+  try {
+    const healthRes = await fetch(`${API_BASE_URL}/api/health`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    result.backendLatencyMs = Math.round(performance.now() - t0);
+
+    if (!healthRes.ok) {
+      result.errorKind = healthRes.status === 404 ? 'endpoint_missing' : 'server_error';
+      result.statusMessage = `Backend responded with HTTP ${healthRes.status}. Health endpoint returned an error.`;
+      result.technicalDetails = `Status: ${healthRes.statusText}`;
+      return result;
+    }
+
+    result.backendOnline = true;
+  } catch (err: any) {
+    result.errorKind = 'backend_offline';
+    result.statusMessage = `Backend API server is offline or unreachable at ${API_BASE_URL}.`;
+    result.technicalDetails = `Browser network fetch failed (${err?.message || 'Connection refused'}). Please verify the FastAPI backend is running (e.g. 'python run.py' or 'uvicorn app.main:app --port 8000').`;
+    return result;
+  }
+
+  // Step 2: Check PostgreSQL Database Health through FastAPI
+  const t1 = performance.now();
+  try {
+    const dbRes = await fetch(`${API_BASE_URL}/api/health/db`, {
+      headers: { 'Accept': 'application/json' },
+    });
+    result.databaseLatencyMs = Math.round(performance.now() - t1);
+
+    if (dbRes.ok) {
+      const dbData = await dbRes.json();
+      if (dbData.status === 'ok' && dbData.database === 'connected') {
+        result.databaseOnline = true;
+        result.statusMessage = 'FastAPI backend and PostgreSQL database are healthy and connected.';
+        return result;
+      }
+    }
+
+    result.errorKind = 'database_offline';
+    let detail = 'Database connection failed';
+    try {
+      const dbErr = await dbRes.json();
+      detail = dbErr.detail || dbErr.message || detail;
+    } catch {}
+    result.statusMessage = 'FastAPI backend is active, but PostgreSQL database is disconnected.';
+    result.technicalDetails = detail;
+    return result;
+  } catch (dbErr: any) {
+    result.errorKind = 'database_offline';
+    result.statusMessage = 'FastAPI backend is active, but checking PostgreSQL connectivity failed.';
+    result.technicalDetails = dbErr?.message;
+    return result;
+  }
 }
 
 export const serversApi = {
@@ -109,23 +246,22 @@ export const serversApi = {
    * Health checks
    */
   async checkHealth(): Promise<{ status: string }> {
-    const res = await fetch(`${API_BASE_URL}/api/health`);
-    return handleResponse<{ status: string }>(res);
+    return apiFetch<{ status: string }>('/api/health');
   },
 
   async checkDbHealth(): Promise<{ status: string; database?: string }> {
-    const res = await fetch(`${API_BASE_URL}/api/health/db`);
-    return handleResponse<{ status: string; database?: string }>(res);
+    return apiFetch<{ status: string; database?: string }>('/api/health/db');
+  },
+
+  async checkDiagnostics(): Promise<ConnectionDiagnosticResult> {
+    return checkSystemDiagnostics();
   },
 
   /**
    * GET /api/servers
    */
   async getAll(): Promise<MonitoredServer[]> {
-    const res = await fetch(`${API_BASE_URL}/api/servers`, {
-      headers: { 'Accept': 'application/json' },
-    });
-    const data = await handleResponse<BackendServer[]>(res);
+    const data = await apiFetch<BackendServer[]>('/api/servers');
     return data.map(mapBackendToMonitoredServer);
   },
 
@@ -133,10 +269,7 @@ export const serversApi = {
    * GET /api/servers/{id}
    */
   async getById(id: string | number): Promise<MonitoredServer> {
-    const res = await fetch(`${API_BASE_URL}/api/servers/${id}`, {
-      headers: { 'Accept': 'application/json' },
-    });
-    const data = await handleResponse<BackendServer>(res);
+    const data = await apiFetch<BackendServer>(`/api/servers/${id}`);
     return mapBackendToMonitoredServer(data);
   },
 
@@ -155,7 +288,7 @@ export const serversApi = {
       description: data.description || '',
     };
 
-    const res = await fetch(`${API_BASE_URL}/api/servers`, {
+    const created = await apiFetch<BackendServer>('/api/servers', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -164,7 +297,6 @@ export const serversApi = {
       body: JSON.stringify(payload),
     });
 
-    const created = await handleResponse<BackendServer>(res);
     return mapBackendToMonitoredServer(created);
   },
 
@@ -172,7 +304,7 @@ export const serversApi = {
    * PUT /api/servers/{id}
    */
   async update(id: string | number, data: UpdateServerPayload): Promise<MonitoredServer> {
-    const res = await fetch(`${API_BASE_URL}/api/servers/${id}`, {
+    const updated = await apiFetch<BackendServer>(`/api/servers/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -181,7 +313,6 @@ export const serversApi = {
       body: JSON.stringify(data),
     });
 
-    const updated = await handleResponse<BackendServer>(res);
     return mapBackendToMonitoredServer(updated);
   },
 
@@ -189,9 +320,8 @@ export const serversApi = {
    * DELETE /api/servers/{id}
    */
   async delete(id: string | number): Promise<void> {
-    const res = await fetch(`${API_BASE_URL}/api/servers/${id}`, {
+    await apiFetch<void>(`/api/servers/${id}`, {
       method: 'DELETE',
     });
-    await handleResponse<void>(res);
   },
 };
