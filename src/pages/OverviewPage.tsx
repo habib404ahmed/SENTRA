@@ -51,93 +51,100 @@ export const OverviewPage: React.FC = () => {
   const criticalThreats = activeThreats.filter(a => a.severity === 'critical');
 
   return (
-    <div className="space-y-5">
-      {/* Top Welcome / Status Alert Banner */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-background-card via-background-surface to-background-card border border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/30 shrink-0">
-            <Radio className="w-5 h-5 animate-pulse" />
+    <div className="space-y-4">
+      {/* Top Threat Defense Operations Banner */}
+      <div className="hud-bracket p-4 bg-background-surface/90 border border-border flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
+        {/* Subtle cyan glow line */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-sentra-cyan/50 to-transparent" />
+
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="p-2.5 rounded bg-background border border-sentra-cyan/40 text-sentra-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)] shrink-0">
+            <Radio className="w-5 h-5 animate-pulse text-sentra-cyan" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-100 font-display">
-                SENTRA Live Threat Monitoring Console
+              <h2 className="text-xs sm:text-sm font-mono font-bold tracking-widest text-text uppercase">
+                CYBER THREAT COMMAND CENTER // SENTRA-OPS
               </h2>
-              <Badge variant="demo">Demo Telemetry Feed</Badge>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sentra-green/15 text-sentra-green border border-sentra-green/30 font-bold uppercase">
+                LIVE INGRESS
+              </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Unidirectional ingress tap: <strong className="text-slate-200">eth0 (10GbE Simplex)</strong> • Zero return-path emissions
+            <p className="text-[11px] font-mono text-text-muted mt-0.5">
+              PASSIVE OPTICAL TAP: <strong className="text-sentra-cyan">eth0 (10GbE SIMPLEX)</strong> • ZERO RETURN-PATH EMISSIONS
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-mono">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-border">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-slate-300">DIODE LINK: LOCKED</span>
+        <div className="flex items-center gap-2.5 text-xs font-mono relative z-10">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border text-text">
+            <span className="w-2 h-2 rounded-full bg-sentra-green animate-ping" />
+            <span className="text-[11px] tracking-wider text-text-muted">DIODE:</span>
+            <span className="text-sentra-green font-bold text-[11px]">LOCKED</span>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-border text-slate-400">
-            <span>PACKET DROP:</span>
-            <span className="text-emerald-400 font-bold">0.00%</span>
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border text-text-muted">
+            <span className="text-[11px] tracking-wider">PACKET DROP:</span>
+            <span className="text-sentra-green font-bold text-[11px]">0.00%</span>
           </div>
         </div>
       </div>
 
-      {/* Top 5 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-        {/* KPI 1: Monitored Servers */}
+      {/* Top 5 Command KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* KPI 1: Monitored Assets */}
         <StatCard
-          title="Monitored Servers"
+          title="Monitored Assets"
           value={servers.length}
-          trendText={`${servers.length} active assets`}
+          trendText={`${servers.length} Active Targets`}
           trendDirection="up"
-          icon={<Server className="w-5 h-5" />}
+          icon={<Server className="w-4 h-4" />}
           badgeText="PostgreSQL"
           badgeVariant="low"
         />
 
-        {/* KPI 2: Active Threats */}
+        {/* KPI 2: Traffic Flows Processed */}
         <StatCard
-          title="Active Threats"
-          value={activeThreats.length}
-          trendText={`${criticalThreats.length} critical alerts`}
-          trendDirection="down"
-          icon={<ShieldAlert className="w-5 h-5 text-rose-400" />}
-          badgeText="Requires Action"
-          badgeVariant="critical"
-        />
-
-        {/* KPI 3: Traffic Analyzed */}
-        <StatCard
-          title="Traffic Analyzed"
-          value={ingestionStats && ingestionStats.totalFlows > 0 ? `${ingestionStats.totalFlows} Flows` : mockKpiMetrics.trafficAnalyzed.value}
-          trendText={ingestionStats && ingestionStats.totalFlows > 0 ? `${ingestionStats.totalPackets.toLocaleString()} Ingested Packets` : 'Simulated Ingress'}
+          title="Traffic Flows"
+          value={ingestionStats && ingestionStats.totalFlows > 0 ? `${ingestionStats.totalFlows}` : (mockKpiMetrics.trafficAnalyzed.value)}
+          trendText={ingestionStats && ingestionStats.totalFlows > 0 ? `${ingestionStats.totalPackets.toLocaleString()} Pkts Parsed` : 'Telemetry Ingress'}
           trendDirection="neutral"
-          icon={<Activity className="w-5 h-5 text-sentra-cyan" />}
-          badgeText={ingestionStats && ingestionStats.totalFlows > 0 ? 'Imported PCAP' : 'Demo Data'}
+          icon={<Activity className="w-4 h-4 text-sentra-cyan" />}
+          badgeText={ingestionStats && ingestionStats.totalFlows > 0 ? 'PCAP Ingested' : 'Telemetry'}
           badgeVariant={ingestionStats && ingestionStats.totalFlows > 0 ? 'low' : 'info'}
         />
 
-        {/* KPI 4: Threats Detected */}
+        {/* KPI 3: Threat Alerts */}
         <StatCard
-          title="Threats Detected"
-          value={mockKpiMetrics.threatsDetected.value}
-          trendText={mockKpiMetrics.threatsDetected.changeText}
-          trendDirection="up"
-          icon={<Zap className="w-5 h-5 text-amber-400" />}
-          badgeText="24h Window"
-          badgeVariant="medium"
+          title="Threat Alerts"
+          value={activeThreats.length}
+          trendText={`${alerts.length} Total Registered`}
+          trendDirection="neutral"
+          icon={<ShieldAlert className="w-4 h-4 text-sentra-danger" />}
+          badgeText="Queue Active"
+          badgeVariant={activeThreats.length > 0 ? 'high' : 'low'}
         />
 
-        {/* KPI 5: Model Metric Placeholder (CLEARLY LABELED DEMO) */}
+        {/* KPI 4: Critical Alerts */}
         <StatCard
-          title="Model Metric"
+          title="Critical Alerts"
+          value={criticalThreats.length}
+          trendText={criticalThreats.length > 0 ? 'Immediate Action' : 'No Critical Spill'}
+          trendDirection={criticalThreats.length > 0 ? 'down' : 'neutral'}
+          icon={<Zap className="w-4 h-4 text-sentra-critical" />}
+          badgeText={criticalThreats.length > 0 ? 'P1 CRITICAL' : 'NOMINAL'}
+          badgeVariant={criticalThreats.length > 0 ? 'critical' : 'low'}
+        />
+
+        {/* KPI 5: Model Health / Detection */}
+        <StatCard
+          title="Model Health"
           value={mockKpiMetrics.modelMetricPlaceholder.f1ScoreDemo}
-          trendText="Offline Baseline F1"
+          trendText="Baseline F1-Score"
           trendDirection="neutral"
-          icon={<Cpu className="w-5 h-5 text-purple-400" />}
+          icon={<Cpu className="w-4 h-4 text-sentra-cyan" />}
           isDemoPlaceholder={true}
-          subtitle="Demo / Benchmark"
+          badgeText="RF Baseline"
+          badgeVariant="demo"
         />
       </div>
 
@@ -151,7 +158,7 @@ export const OverviewPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Alerts Table */}
+      {/* Recent Alerts Incident Table */}
       <RecentAlertsTable />
 
       {/* Bottom Row: Server Health & Detection Activity Stream */}

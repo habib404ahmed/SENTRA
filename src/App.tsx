@@ -52,30 +52,33 @@ export const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-slate-100 flex">
+    <div className="min-h-screen bg-background text-text flex soc-grid-bg relative selection:bg-sentra-cyan selection:text-black">
+      {/* Subtle Scanline Overlay */}
+      <div className="scanlines pointer-events-none fixed inset-0 z-40" />
+
       {/* Responsive Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pl-20 lg:pl-64 transition-all duration-300">
+      <div className="flex-1 flex flex-col min-w-0 pl-18 lg:pl-64 transition-all duration-300 relative z-10">
         <Header />
         
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 max-w-7xl mx-auto w-full">
           {renderActivePage()}
         </main>
 
-        {/* Global Footer */}
-        <footer className="border-t border-border/80 px-6 py-4 bg-background-surface/50 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-semibold text-slate-400">SENTRA</span>
-            <span>•</span>
-            <span>SIH 2026 Problem Statement 26145</span>
-            <span>•</span>
-            <span className="font-mono text-sentra-cyan/80">Phase 5: AI/ML Threat Detection Engine</span>
+        {/* Global Operational Footer */}
+        <footer className="border-t border-border px-6 py-3.5 bg-background-subtle/80 text-xs text-text-muted flex flex-col sm:flex-row items-center justify-between gap-2 font-mono">
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className="font-bold text-sentra-cyan tracking-widest">SENTRA // COMMAND</span>
+            <span className="text-border-bright">•</span>
+            <span className="text-text-muted">SIH PS 26145</span>
+            <span className="text-border-bright">•</span>
+            <span className="text-sentra-green font-semibold">PHASE 5: ML THREAT ENGINE</span>
           </div>
 
-          <div className="font-mono text-[11px] text-slate-500">
-            Team Sentra 1 (ID: 191970) • Unidirectional IP Threat Detection
+          <div className="text-[10px] text-text-muted/80 tracking-wider">
+            UNIDIRECTIONAL IP DEFENSE • PASSIVE INGRESS TELEMETRY
           </div>
         </footer>
       </div>

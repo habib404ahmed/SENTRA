@@ -106,62 +106,65 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-screen z-30 flex flex-col justify-between bg-background-surface border-r border-border transition-all duration-300 ease-in-out ${
-        collapsed ? 'w-20' : 'w-64'
+      className={`fixed top-0 left-0 h-screen z-30 flex flex-col justify-between bg-background-subtle border-r border-border transition-all duration-300 ease-in-out select-none ${
+        collapsed ? 'w-18' : 'w-64'
       }`}
     >
       {/* Top Branding Section */}
-      <div>
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border bg-background-subtle/40">
+      <div className="flex flex-col min-h-0">
+        <div className="h-16 flex items-center justify-between px-3.5 border-b border-border bg-background/90 relative">
+          {/* Subtle cyan glow line along bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-sentra-cyan/40 to-transparent" />
+
           {!collapsed ? (
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sentra-cyan to-blue-600 flex items-center justify-center shadow-glow-cyan shrink-0">
-                <Shield className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-8 h-8 rounded bg-background border border-sentra-cyan/50 flex items-center justify-center shadow-glow-cyan shrink-0 relative group">
+                <Shield className="w-4 h-4 text-sentra-cyan stroke-[2.2]" />
+                <div className="absolute inset-0 bg-sentra-cyan/10 rounded animate-pulse" />
               </div>
               <div className="leading-tight">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-display font-extrabold tracking-wider text-base text-white">
+                  <span className="font-mono font-black tracking-widest text-sm text-text">
                     SENTRA
                   </span>
-                  <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/30">
-                    SOC
+                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/40 font-bold">
+                    DEF-OPS
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 truncate max-w-[150px]">
-                  Unidirectional Threat Detection
+                <p className="text-[9px] font-mono text-text-muted uppercase tracking-wider truncate max-w-[145px]">
+                  Unidirectional IP Core
                 </p>
               </div>
             </div>
           ) : (
-            <div className="mx-auto w-8 h-8 rounded-lg bg-gradient-to-br from-sentra-cyan to-blue-600 flex items-center justify-center shadow-glow-cyan">
-              <Shield className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+            <div className="mx-auto w-8 h-8 rounded bg-background border border-sentra-cyan/50 flex items-center justify-center shadow-glow-cyan">
+              <Shield className="w-4 h-4 text-sentra-cyan stroke-[2.2]" />
             </div>
           )}
 
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="p-1.5 rounded text-text-muted hover:text-sentra-cyan hover:bg-background-card transition-colors border border-transparent hover:border-border"
+            title={collapsed ? "Expand sidebar console" : "Collapse sidebar console"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
           </button>
         </div>
 
-        {/* Hackathon Badge / Problem Statement pill */}
+        {/* Technical Sub-Header / Problem Statement badge */}
         {!collapsed && (
-          <div className="px-4 py-2.5 bg-slate-900/60 border-b border-border/60">
-            <div className="flex items-center justify-between text-[11px] text-slate-400">
-              <span className="font-mono text-sentra-sky flex items-center gap-1">
-                <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
-                SIH-2026: PS 26145
-              </span>
-              <span className="text-slate-500 font-mono text-[10px]">Team 191970</span>
-            </div>
+          <div className="px-3.5 py-2 bg-background/50 border-b border-border/70 flex items-center justify-between text-[10px] font-mono">
+            <span className="text-text-muted flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-sentra-green animate-pulse" />
+              <span>SIH-26145 // P-5</span>
+            </span>
+            <span className="text-text-muted/70 tracking-widest">DIODE-ACTIVE</span>
           </div>
         )}
 
         {/* Navigation Items */}
-        <nav className="p-3 space-y-1.5">
+        <nav className="p-2.5 space-y-1 overflow-y-auto flex-1 custom-scrollbar">
           {navItems.map((item) => {
             const isActive = activePage === item.id;
             return (
@@ -169,25 +172,34 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 onClick={() => setActivePage(item.id)}
                 className={`w-full flex items-center ${
-                  collapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'
-                } rounded-lg text-xs font-medium transition-all ${
+                  collapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'
+                } rounded text-xs font-mono transition-all duration-200 relative group ${
                   isActive
-                    ? 'bg-sentra-cyan/15 text-sentra-cyan border border-sentra-cyan/30 shadow-sm font-semibold'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
+                    ? 'bg-background-card text-sentra-cyan font-bold border border-sentra-cyan/50 shadow-[0_0_12px_rgba(0,229,255,0.18)]'
+                    : 'text-text-muted hover:text-text hover:bg-background-card/50 border border-transparent hover:border-border/60'
                 }`}
                 title={collapsed ? item.label : undefined}
               >
-                <div className="flex items-center gap-3">
-                  <span className={`${isActive ? 'text-sentra-cyan' : 'text-slate-400'}`}>
+                {/* Active indicator bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-sentra-cyan rounded-r shadow-[0_0_8px_#00E5FF]" />
+                )}
+
+                <div className="flex items-center gap-2.5">
+                  <span className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-sentra-cyan' : 'text-text-muted group-hover:text-text'}`}>
                     {item.icon}
                   </span>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  {!collapsed && (
+                    <span className="tracking-wide text-[11px] truncate uppercase font-semibold">
+                      {item.label}
+                    </span>
+                  )}
                 </div>
 
                 {!collapsed && item.badge !== undefined && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium ${
-                      item.badgeColor || 'bg-slate-800 text-slate-400'
+                    className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold tracking-tight ${
+                      item.badgeColor || 'bg-background text-text-muted border border-border'
                     }`}
                   >
                     {item.badge}
@@ -200,46 +212,46 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Bottom Status & User Profile */}
-      <div className="p-3 border-t border-border bg-background-subtle/30 space-y-2">
+      <div className="p-2.5 border-t border-border bg-background/80 space-y-2">
         {/* Unidirectional Hardware Diode Status Widget */}
         {!collapsed ? (
-          <div className="p-2.5 rounded-lg bg-slate-900/90 border border-border text-xs space-y-1.5">
+          <div className="p-2 rounded bg-background border border-border text-xs space-y-1 relative overflow-hidden">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase text-slate-400 flex items-center gap-1.5">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted flex items-center gap-1.5">
                 <Lock className="w-3 h-3 text-sentra-cyan" />
-                Diode Architecture
+                Diode Bridge
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                PASSIVE TAP
+              <span className="inline-flex items-center gap-1 text-[9px] font-mono text-sentra-green font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-sentra-green animate-ping"></span>
+                INGRESS
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 leading-tight">
-              Ingress Only • TX Disconnected
+            <div className="text-[10px] font-mono text-text-muted/80 leading-tight">
+              RX Tap Only • TX Fiber Severed
             </div>
           </div>
         ) : (
-          <div className="flex justify-center p-2" title="Passive Optical Tap Active (Read-Only)">
-            <Lock className="w-4 h-4 text-emerald-400" />
+          <div className="flex justify-center p-2 text-sentra-green" title="Unidirectional Optical Ingress Active (Zero TX)">
+            <Lock className="w-4 h-4" />
           </div>
         )}
 
         {/* User Card */}
         <div
           className={`flex items-center ${
-            collapsed ? 'justify-center p-2' : 'justify-between p-2'
-          } rounded-lg bg-background-card border border-border/80`}
+            collapsed ? 'justify-center p-1.5' : 'justify-between p-2'
+          } rounded bg-background-card border border-border`}
         >
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 text-sentra-cyan font-mono font-bold text-xs flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded bg-background border border-border-bright text-sentra-cyan font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
               {currentUser.avatar}
             </div>
             {!collapsed && (
               <div className="leading-tight overflow-hidden">
-                <div className="text-xs font-semibold text-slate-200 truncate">
+                <div className="text-xs font-mono font-semibold text-text truncate">
                   {currentUser.name}
                 </div>
-                <div className="text-[10px] text-slate-400 font-mono truncate">
+                <div className="text-[9px] text-text-muted font-mono uppercase truncate">
                   {currentUser.role}
                 </div>
               </div>
@@ -249,8 +261,9 @@ export const Sidebar: React.FC = () => {
           {!collapsed && (
             <button
               onClick={logout}
-              className="text-slate-400 hover:text-rose-400 p-1 rounded hover:bg-slate-800 transition-colors"
-              title="Sign Out (Demo)"
+              className="text-text-muted hover:text-sentra-danger p-1 rounded hover:bg-background transition-colors"
+              title="Sign Out"
+              aria-label="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>

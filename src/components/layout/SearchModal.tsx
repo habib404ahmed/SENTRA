@@ -67,49 +67,53 @@ export const SearchModal: React.FC = () => {
     : alerts.slice(0, 3);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-3 sm:px-4 select-none">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm"
+        className="fixed inset-0 bg-[#05070B]/85 backdrop-blur-sm"
         onClick={() => setIsSearchOpen(false)}
       />
 
       {/* Search Container */}
-      <div className="relative w-full max-w-2xl bg-background-surface border border-border rounded-xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-2xl hud-bracket bg-background-surface border border-border-bright rounded shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+        {/* Top cyan accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sentra-cyan/60 to-transparent" />
+
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-border bg-background-card/80">
-          <Search className="w-5 h-5 text-sentra-cyan shrink-0 mr-3" />
+        <div className="flex items-center px-4 py-3.5 border-b border-border bg-background-card">
+          <Search className="w-4 h-4 text-sentra-cyan shrink-0 mr-3" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search servers, IPs, threat categories, alerts (e.g., '10.0.0.30', 'DDoS', 'Auth')..."
-            className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 focus:outline-none"
+            placeholder="Search targets, IPs, threat categories, alerts (e.g., '10.0.0.30', 'DDoS', 'Auth')..."
+            className="w-full bg-transparent text-xs font-mono text-text placeholder-text-muted/60 focus:outline-none"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="text-slate-400 hover:text-slate-200 p-1 mr-2"
+              className="text-text-muted hover:text-text p-1 mr-2"
+              aria-label="Clear search query"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="text-[10px] font-mono px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">
+          <kbd className="text-[9px] font-mono px-2 py-0.5 rounded bg-background text-text-muted border border-border">
             ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-4">
+        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-4 custom-scrollbar">
           {/* Servers Group */}
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+            <div className="text-[10px] font-mono uppercase tracking-wider text-text-muted mb-2 flex items-center gap-1.5">
               <Server className="w-3.5 h-3.5 text-sentra-cyan" />
-              Monitored Servers ({matchedServers.length})
+              Monitored Assets ({matchedServers.length})
             </div>
             {matchedServers.length === 0 ? (
-              <p className="text-xs text-slate-500 italic pl-2">No matching servers found</p>
+              <p className="text-xs font-mono text-text-muted/70 pl-2">No matching servers found</p>
             ) : (
               <div className="space-y-1.5">
                 {matchedServers.map((server) => (
@@ -120,26 +124,26 @@ export const SearchModal: React.FC = () => {
                       setIsSearchOpen(false);
                       setActivePage('servers');
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-background-card hover:bg-slate-800/80 border border-border/80 cursor-pointer transition-colors group"
+                    className="flex items-center justify-between p-2.5 rounded bg-background border border-border hover:border-sentra-cyan/50 hover:bg-background-card cursor-pointer transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-1.5 rounded bg-slate-800 text-sentra-cyan">
-                        <Server className="w-4 h-4" />
+                      <div className="p-1.5 rounded bg-background-card border border-border text-sentra-cyan">
+                        <Server className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-slate-200 group-hover:text-sentra-cyan transition-colors">
+                        <div className="text-xs font-mono font-bold text-text group-hover:text-sentra-cyan transition-colors">
                           {server.name}
                         </div>
-                        <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
+                        <div className="text-[10px] font-mono text-text-muted flex items-center gap-2">
                           <span>{server.ipAddress}</span>
                           <span>•</span>
-                          <span className="text-slate-500">{server.hostname}</span>
+                          <span>{server.hostname}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge env={server.environment}>{server.environment}</Badge>
-                      <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-sentra-cyan group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-sentra-cyan group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </div>
                 ))}
@@ -149,12 +153,12 @@ export const SearchModal: React.FC = () => {
 
           {/* Threat Alerts Group */}
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+            <div className="text-[10px] font-mono uppercase tracking-wider text-text-muted mb-2 flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-sentra-danger" />
               Threat Incidents ({matchedAlerts.length})
             </div>
             {matchedAlerts.length === 0 ? (
-              <p className="text-xs text-slate-500 italic pl-2">No matching alerts found</p>
+              <p className="text-xs font-mono text-text-muted/70 pl-2">No matching threat alerts found</p>
             ) : (
               <div className="space-y-1.5">
                 {matchedAlerts.map((alert) => (
@@ -165,28 +169,28 @@ export const SearchModal: React.FC = () => {
                       setIsSearchOpen(false);
                       setActivePage('alerts');
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-lg bg-background-card hover:bg-slate-800/80 border border-border/80 cursor-pointer transition-colors group"
+                    className="flex items-center justify-between p-2.5 rounded bg-background border border-border hover:border-sentra-danger/50 hover:bg-background-card cursor-pointer transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-1.5 rounded bg-slate-800 text-rose-400">
-                        <ShieldAlert className="w-4 h-4" />
+                      <div className="p-1.5 rounded bg-background-card border border-border text-sentra-danger">
+                        <ShieldAlert className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-slate-200 group-hover:text-sentra-cyan transition-colors flex items-center gap-2">
+                        <div className="text-xs font-mono font-bold text-text group-hover:text-sentra-cyan transition-colors flex items-center gap-2">
                           <span>{alert.threat}</span>
-                          <span className="text-[10px] font-mono text-slate-500">{alert.id}</span>
+                          <span className="text-[9px] font-mono text-text-muted">{alert.id}</span>
                         </div>
-                        <div className="text-[11px] font-mono text-slate-400 flex items-center gap-2">
-                          <span className="text-rose-400/90">{alert.sourceIp}</span>
+                        <div className="text-[10px] font-mono text-text-muted flex items-center gap-2">
+                          <span className="text-sentra-danger">{alert.sourceIp}</span>
                           <span>→</span>
-                          <span className="text-slate-300">{alert.destinationIp}:{alert.destinationPort}</span>
+                          <span>{alert.destinationIp}:{alert.destinationPort}</span>
                           <span>({alert.serverName})</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge severity={alert.severity}>{alert.severity}</Badge>
-                      <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-sentra-cyan group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-sentra-cyan group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </div>
                 ))}
@@ -196,11 +200,11 @@ export const SearchModal: React.FC = () => {
         </div>
 
         {/* Footer info */}
-        <div className="p-3 border-t border-border bg-background-subtle/50 flex items-center justify-between text-[11px] text-slate-400">
+        <div className="p-3 border-t border-border bg-background-subtle flex items-center justify-between text-[10px] font-mono text-text-muted">
           <span className="flex items-center gap-2">
-            <span className="text-sentra-cyan">Tip:</span> Press Enter to view selection or click to jump directly
+            <span className="text-sentra-cyan font-bold">INFO:</span> Select target to navigate directly
           </span>
-          <span className="font-mono text-slate-500">SENTRA Global Telemetry Index</span>
+          <span className="tracking-wider">SENTRA TELEMETRY INDEX</span>
         </div>
       </div>
     </div>

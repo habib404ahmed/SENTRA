@@ -97,78 +97,79 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-20 h-16 bg-background-surface/85 backdrop-blur-md border-b border-border px-6 flex items-center justify-between">
+    <header className="sticky top-0 z-20 h-14 bg-background-subtle/95 backdrop-blur-md border-b border-border px-4 sm:px-6 flex items-center justify-between select-none">
       {/* Page Title & Breadcrumb */}
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-base font-bold text-slate-100 font-display">
+          <h1 className="text-xs sm:text-sm font-bold text-text uppercase tracking-widest font-mono">
             {currentInfo.title}
           </h1>
-          <span className="text-slate-600 font-mono text-xs">/</span>
-          <span className="text-xs font-mono text-sentra-cyan capitalize">
+          <span className="text-border-bright font-mono text-xs">//</span>
+          <span className="text-[11px] font-mono font-bold text-sentra-cyan uppercase tracking-wider">
             {activePage}
           </span>
         </div>
-        <p className="text-[11px] text-slate-400 hidden md:block">
+        <p className="text-[10px] font-mono text-text-muted hidden md:block tracking-tight">
           {currentInfo.subtitle}
         </p>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Live SOC Clock */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-border text-slate-300 font-mono text-xs">
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border text-text-muted font-mono text-[11px] shadow-inner">
           <Clock className="w-3.5 h-3.5 text-sentra-cyan" />
-          <span>{currentTime || '12:00:00 UTC'}</span>
+          <span className="text-text font-semibold">{currentTime || '00:00:00 UTC'}</span>
         </div>
 
         {/* Global Search Button */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background-card border border-border text-slate-400 hover:text-slate-200 hover:border-slate-600 transition-all text-xs"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-background-card border border-border text-text-muted hover:text-text hover:border-border-bright hover:shadow-[0_0_8px_rgba(37,50,68,0.5)] transition-all text-xs font-mono"
           title="Search telemetry (Ctrl+K)"
+          aria-label="Search telemetry"
         >
-          <Search className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Search telemetry, IPs...</span>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-slate-800 border border-slate-700 rounded text-slate-400">
-            Ctrl K
+          <Search className="w-3.5 h-3.5 text-sentra-cyan" />
+          <span className="hidden sm:inline text-[11px]">TELEMETRY SEARCH</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.2 text-[9px] font-mono bg-background border border-border rounded text-text-muted">
+            CTRL K
           </kbd>
         </button>
 
         {/* Unidirectional Sensor Status Tag */}
-        <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-sentra-green/30 text-sentra-green font-mono text-[10px]">
+          <span className="w-1.5 h-1.5 rounded-full bg-sentra-green animate-pulse"></span>
           <span>OPTICAL TAP: 10GbE</span>
         </div>
 
         {/* Backend & DB Health Indicator Pill */}
         {serversDiagnostic?.backendOnline && serversDiagnostic?.healthRouteValid && serversDiagnostic?.databaseOnline ? (
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]" title="FastAPI and PostgreSQL database are online and connected">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>BACKEND: ONLINE</span>
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-sentra-green/30 text-sentra-green font-mono text-[10px]" title="FastAPI and PostgreSQL database are online and connected">
+            <span className="w-1.5 h-1.5 rounded-full bg-sentra-green animate-pulse"></span>
+            <span>API: ONLINE</span>
           </div>
         ) : serversDiagnostic?.backendOnline && serversDiagnostic?.healthRouteValid && !serversDiagnostic?.databaseOnline ? (
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono text-[11px]" title="FastAPI is online, but PostgreSQL is reconnecting">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-            <span>POSTGRES: CONNECTING</span>
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-sentra-amber/30 text-sentra-amber font-mono text-[10px]" title="FastAPI is online, but PostgreSQL is reconnecting">
+            <span className="w-1.5 h-1.5 rounded-full bg-sentra-amber animate-pulse"></span>
+            <span>DB: CONNECTING</span>
           </div>
         ) : serversDiagnostic?.backendOnline && !serversDiagnostic?.healthRouteValid ? (
           <button 
             onClick={() => retryConnection()}
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 font-mono text-[11px] transition-colors"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-sentra-amber/30 text-sentra-amber hover:bg-sentra-amber/10 font-mono text-[10px] transition-colors"
             title="Backend is reachable, but the health route returned HTTP 404. Click to diagnose & retry."
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span>ROUTE 404: MISCONFIGURED {isAutoReconnecting && autoReconnectCountdown > 0 ? `(${autoReconnectCountdown}s)` : ''}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-sentra-amber"></span>
+            <span>ROUTE 404 {isAutoReconnecting && autoReconnectCountdown > 0 ? `(${autoReconnectCountdown}s)` : ''}</span>
           </button>
         ) : serversDiagnostic && !serversDiagnostic.backendOnline ? (
           <button 
             onClick={() => retryConnection()}
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-300 hover:bg-rose-500/20 font-mono text-[11px] transition-colors"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-sentra-danger/40 text-sentra-danger hover:bg-sentra-danger/10 font-mono text-[10px] transition-colors"
             title="FastAPI backend is offline or unreachable. Click to diagnose & retry."
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-            <span>BACKEND: OFFLINE {isAutoReconnecting && autoReconnectCountdown > 0 ? `(${autoReconnectCountdown}s)` : ''}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-sentra-danger animate-pulse"></span>
+            <span>API: OFFLINE {isAutoReconnecting && autoReconnectCountdown > 0 ? `(${autoReconnectCountdown}s)` : ''}</span>
           </button>
         ) : null}
 
@@ -176,7 +177,7 @@ export const Header: React.FC = () => {
         <Button
           variant="primary"
           size="sm"
-          icon={<Plus className="w-3.5 h-3.5" />}
+          icon={<Plus className="w-3.5 h-3.5 stroke-[2.5]" />}
           onClick={() => {
             setActivePage('servers');
             setIsAddServerOpen(true);
@@ -192,12 +193,13 @@ export const Header: React.FC = () => {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="relative p-2 rounded-lg bg-background-card border border-border text-slate-400 hover:text-slate-200 hover:border-slate-600 transition-colors"
+            className="relative p-2 rounded bg-background-card border border-border text-text-muted hover:text-text hover:border-border-bright hover:shadow-[0_0_8px_rgba(37,50,68,0.5)] transition-colors"
             title="Notifications"
+            aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
             {unreadNotifsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[10px] font-mono font-bold flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-sentra-danger text-white rounded-full text-[9px] font-mono font-bold flex items-center justify-center animate-pulse">
                 {unreadNotifsCount}
               </span>
             )}
@@ -205,22 +207,22 @@ export const Header: React.FC = () => {
 
           {/* Notifications Dropdown Panel */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-background-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between p-3.5 border-b border-border bg-background-subtle/60">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-background-surface border border-border-bright rounded shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between p-3 border-b border-border bg-background-subtle">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-100">
-                    Security Alerts & Events
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-text">
+                    Threat & System Logs
                   </span>
                   {unreadNotifsCount > 0 && (
-                    <Badge variant="demo" className="text-[10px]">
-                      {unreadNotifsCount} New
+                    <Badge variant="demo" className="text-[9px]">
+                      {unreadNotifsCount} NEW
                     </Badge>
                   )}
                 </div>
                 {unreadNotifsCount > 0 && (
                   <button
                     onClick={markAllNotificationsAsRead}
-                    className="text-[11px] text-sentra-cyan hover:underline flex items-center gap-1"
+                    className="text-[10px] font-mono text-sentra-cyan hover:underline flex items-center gap-1 uppercase"
                   >
                     <Check className="w-3 h-3" />
                     Mark all read
@@ -228,10 +230,10 @@ export const Header: React.FC = () => {
                 )}
               </div>
 
-              <div className="max-h-80 overflow-y-auto divide-y divide-border/60">
+              <div className="max-h-80 overflow-y-auto divide-y divide-border/60 custom-scrollbar">
                 {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-500">
-                    No active notifications
+                  <div className="p-6 text-center text-xs font-mono text-text-muted">
+                    No active incident notifications
                   </div>
                 ) : (
                   notifications.map((n) => (
@@ -244,29 +246,29 @@ export const Header: React.FC = () => {
                           setIsNotifOpen(false);
                         }
                       }}
-                      className={`p-3.5 text-xs cursor-pointer hover:bg-slate-800/40 transition-colors flex items-start gap-3 ${
+                      className={`p-3 text-xs cursor-pointer hover:bg-background-card/60 transition-colors flex items-start gap-2.5 ${
                         !n.read ? 'bg-sentra-cyan/5' : ''
                       }`}
                     >
-                      <div className="mt-0.5 shrink-0">
+                      <div className="mt-1 shrink-0">
                         {n.severity === 'critical' ? (
-                          <div className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></div>
+                          <div className="w-2 h-2 rounded-full bg-sentra-critical animate-ping" />
                         ) : n.severity === 'high' ? (
-                          <div className="w-2 h-2 rounded-full bg-orange-400"></div>
+                          <div className="w-2 h-2 rounded-full bg-sentra-danger" />
                         ) : (
-                          <div className="w-2 h-2 rounded-full bg-sentra-cyan"></div>
+                          <div className="w-2 h-2 rounded-full bg-sentra-cyan" />
                         )}
                       </div>
-                      <div className="flex-1 space-y-1">
+                      <div className="flex-1 space-y-0.5">
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-slate-200">
+                          <span className="font-semibold text-text text-xs">
                             {n.title}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-mono">
+                          <span className="text-[9px] text-text-muted font-mono">
                             {n.timestamp}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 leading-snug">
+                        <p className="text-[11px] text-text-muted leading-tight font-sans">
                           {n.description}
                         </p>
                       </div>
@@ -275,13 +277,13 @@ export const Header: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-2 border-t border-border bg-background-subtle/50 text-center">
+              <div className="p-2 border-t border-border bg-background-subtle text-center">
                 <button
                   onClick={() => {
                     setActivePage('alerts');
                     setIsNotifOpen(false);
                   }}
-                  className="text-xs text-sentra-cyan font-medium hover:underline"
+                  className="text-xs font-mono uppercase tracking-wider text-sentra-cyan font-medium hover:underline"
                 >
                   View All Alerts in Incident Queue →
                 </button>

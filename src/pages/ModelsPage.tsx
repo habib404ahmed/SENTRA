@@ -27,6 +27,7 @@ import { DatasetRegistryTable } from '../components/ml/DatasetRegistryTable';
 import { ModelEvaluationView } from '../components/ml/ModelEvaluationView';
 import { StartTrainingModal } from '../components/ml/StartTrainingModal';
 import { InferencePlaygroundModal } from '../components/ml/InferencePlaygroundModal';
+import { Button } from '@/components/common/Button';
 
 export const ModelsPage: React.FC = () => {
   const [models, setModels] = useState<MLModel[]>([]);
@@ -193,185 +194,187 @@ export const ModelsPage: React.FC = () => {
   const trainedModelCount = models.filter((m) => m.status === 'evaluated' || m.status === 'trained').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
-              <Brain className="w-6 h-6" />
+            <div className="p-2 rounded bg-background border border-sentra-cyan/40 text-sentra-cyan shadow-[0_0_12px_rgba(0,229,255,0.2)]">
+              <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                AI / ML Threat Detection Engine
-                <span className="text-xs px-2.5 py-0.5 rounded-full font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  Phase 5
+              <h1 className="text-xs sm:text-sm font-mono font-bold tracking-widest text-text uppercase flex items-center gap-2">
+                AI / ML THREAT DETECTION ENGINE
+                <span className="text-[9px] px-2 py-0.5 rounded font-mono font-bold bg-sentra-purple/20 text-sentra-purple border border-sentra-purple/40">
+                  PHASE 5
                 </span>
               </h1>
-              <p className="text-sm text-slate-400 mt-0.5">
-                Supervised Multi-Class Threat Classification & Unsupervised Anomaly Detection for Unidirectional IP Flows
+              <p className="text-[11px] font-mono text-text-muted mt-0.5">
+                Supervised Multi-Class Threat Classification & Unsupervised Anomaly Scoring for Unidirectional IP Flows
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleManualRefresh}
             disabled={refreshing || loading}
-            className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 flex items-center gap-2 transition-all disabled:opacity-50"
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />}
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setIsTrainModalOpen(true)}
-            className="px-4 py-2 text-xs font-semibold rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-900/30 flex items-center gap-2 transition-all"
+            icon={<Play className="w-3.5 h-3.5 fill-current" />}
           >
-            <Play className="w-4 h-4" />
-            Train New Model
-          </button>
+            Train Model
+          </Button>
         </div>
       </div>
 
       {/* Notification Toast */}
       {notification && (
         <div
-          className={`p-4 rounded-xl border flex items-center justify-between ${
+          className={`p-3.5 rounded border flex items-center justify-between font-mono text-xs ${
             notification.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+              ? 'bg-sentra-green/10 border-sentra-green/30 text-sentra-green'
+              : 'bg-sentra-danger/10 border-sentra-danger/30 text-sentra-danger'
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {notification.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
             ) : (
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
             )}
-            <span className="text-sm">{notification.message}</span>
+            <span>{notification.message}</span>
           </div>
           <button
             onClick={() => setNotification(null)}
-            className="text-xs hover:underline opacity-80"
+            className="text-[11px] uppercase tracking-wider hover:underline opacity-80"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+      {/* Tactical Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
               Registered Models
             </span>
-            <Cpu className="w-4 h-4 text-purple-400" />
+            <Cpu className="w-4 h-4 text-sentra-cyan" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-white">{models.length}</span>
-            <span className="text-xs text-emerald-400">({trainedModelCount} evaluated)</span>
+            <span className="text-2xl font-bold font-mono text-text">{models.length}</span>
+            <span className="text-[10px] font-mono text-sentra-green font-bold">({trainedModelCount} evaluated)</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">Random Forest & Isolation Forest</p>
+          <p className="text-[10px] font-mono text-text-muted mt-1">Random Forest & Isolation Forest</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
               Active Training Jobs
             </span>
-            <Zap className="w-4 h-4 text-blue-400" />
+            <Zap className="w-4 h-4 text-sentra-amber" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-white">{activeJobCount}</span>
-            <span className="text-xs text-slate-400">/ {jobs.length} total run</span>
+            <span className="text-2xl font-bold font-mono text-text">{activeJobCount}</span>
+            <span className="text-[10px] font-mono text-text-muted">/ {jobs.length} total run</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">Non-blocking background workers</p>
+          <p className="text-[10px] font-mono text-text-muted mt-1">Non-blocking background workers</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
               Available Datasets
             </span>
-            <Database className="w-4 h-4 text-emerald-400" />
+            <Database className="w-4 h-4 text-sentra-green" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-white">{datasets.length}</span>
-            <span className="text-xs text-slate-400">registered</span>
+            <span className="text-2xl font-bold font-mono text-text">{datasets.length}</span>
+            <span className="text-[10px] font-mono text-text-muted">registered</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">SENTRA v1.0.0 schema verified</p>
+          <p className="text-[10px] font-mono text-text-muted mt-1">SENTRA v1.0.0 schema verified</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+        <div className="hud-bracket soc-card p-4 bg-background-surface/90 border border-border">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Target Threat Classes
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
+              Threat Classes
             </span>
-            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+            <ShieldCheck className="w-4 h-4 text-sentra-cyan" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-white">5</span>
-            <span className="text-xs text-cyan-400">classes</span>
+            <span className="text-2xl font-bold font-mono text-text">5</span>
+            <span className="text-[10px] font-mono text-sentra-cyan font-bold">multi-class</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">Normal, DDoS, Recon, DNS Tun, Exfil</p>
+          <p className="text-[10px] font-mono text-text-muted mt-1">Normal, DDoS, Recon, DNS Tun, Exfil</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-800 flex items-center justify-between">
+      <div className="border-b border-border flex items-center justify-between font-mono">
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('models')}
-            className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'models'
-                ? 'border-purple-500 text-purple-400 bg-purple-500/5'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
+                : 'border-transparent text-text-muted hover:text-text'
             }`}
           >
-            <Cpu className="w-4 h-4" />
+            <Cpu className="w-3.5 h-3.5" />
             Model Registry ({models.length})
           </button>
           <button
             onClick={() => setActiveTab('jobs')}
-            className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'jobs'
-                ? 'border-purple-500 text-purple-400 bg-purple-500/5'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
+                : 'border-transparent text-text-muted hover:text-text'
             }`}
           >
-            <Sliders className="w-4 h-4" />
+            <Sliders className="w-3.5 h-3.5" />
             Training History ({jobs.length})
             {activeJobCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500 text-white font-mono animate-pulse">
+              <span className="px-1.5 py-0.2 rounded text-[9px] bg-sentra-amber text-black font-mono font-bold animate-pulse">
                 {activeJobCount}
               </span>
             )}
           </button>
           <button
             onClick={() => setActiveTab('datasets')}
-            className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'datasets'
-                ? 'border-purple-500 text-purple-400 bg-purple-500/5'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
+                : 'border-transparent text-text-muted hover:text-text'
             }`}
           >
-            <Database className="w-4 h-4" />
+            <Database className="w-3.5 h-3.5" />
             Datasets ({datasets.length})
           </button>
           <button
             onClick={() => setActiveTab('evaluation')}
-            className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'evaluation'
-                ? 'border-purple-500 text-purple-400 bg-purple-500/5'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
+                : 'border-transparent text-text-muted hover:text-text'
             }`}
           >
-            <BarChart3 className="w-4 h-4" />
+            <BarChart3 className="w-3.5 h-3.5" />
             Model Evaluation
             {selectedModelForEval && (
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-background border border-border text-sentra-cyan font-bold">
                 {selectedModelForEval.version}
               </span>
             )}

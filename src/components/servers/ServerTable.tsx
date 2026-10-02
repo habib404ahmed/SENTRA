@@ -478,12 +478,12 @@ export const ServerTable: React.FC = () => {
               <div
                 key={server.id}
                 onClick={() => setSelectedServerId(server.id)}
-                className="soc-card p-5 bg-background-surface/80 border border-border hover:border-slate-600 rounded-xl cursor-pointer group flex flex-col justify-between"
+                className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border hover:border-sentra-cyan/50 hover:shadow-[0_0_16px_rgba(0,229,255,0.15)] transition-all cursor-pointer group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
-                    <div className="p-2 rounded bg-slate-800 text-sentra-cyan shrink-0">
-                      <Server className="w-5 h-5" />
+                    <div className="p-2 rounded bg-background border border-border text-sentra-cyan shrink-0">
+                      <Server className="w-4 h-4" />
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Badge env={server.environment}>{server.environment}</Badge>
@@ -492,38 +492,38 @@ export const ServerTable: React.FC = () => {
                   </div>
 
                   <div className="mt-3">
-                    <h4 className="text-sm font-bold text-slate-100 group-hover:text-sentra-cyan transition-colors">
+                    <h4 className="text-xs sm:text-sm font-mono font-bold text-text group-hover:text-sentra-cyan transition-colors">
                       {server.name}
                     </h4>
-                    <div className="text-xs font-mono text-slate-400 mt-0.5">
+                    <div className="text-[11px] font-mono text-text-muted mt-0.5">
                       {server.ipAddress} • {server.hostname}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-2 line-clamp-2">
+                    <p className="text-[11px] text-text-muted mt-2 line-clamp-2 font-sans">
                       {server.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-border/60">
+                <div className="mt-4 pt-3 border-t border-border/80">
                   <div className="grid grid-cols-3 gap-2 text-[10px] font-mono mb-3">
                     <div>
-                      <span className="text-slate-500 block">Bandwidth</span>
-                      <span className="text-slate-200 font-semibold">{server.stats.bandwidthMbps} Mbps</span>
+                      <span className="text-text-muted/70 block text-[8px] uppercase tracking-wider">Bandwidth</span>
+                      <span className="text-text font-bold">{server.stats.bandwidthMbps} Mbps</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">PPS</span>
-                      <span className="text-slate-200 font-semibold">{server.stats.pps}</span>
+                      <span className="text-text-muted/70 block text-[8px] uppercase tracking-wider">Packets/Sec</span>
+                      <span className="text-text font-bold">{server.stats.pps}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Threats</span>
-                      <span className={`font-semibold ${server.activeThreats > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                        {server.activeThreats}
+                      <span className="text-text-muted/70 block text-[8px] uppercase tracking-wider">Threats</span>
+                      <span className={`font-bold ${server.activeThreats > 0 ? 'text-sentra-danger' : 'text-sentra-green'}`}>
+                        {server.activeThreats > 0 ? `${server.activeThreats} ACTIVE` : 'CLEAN'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-border/30" onClick={(e) => e.stopPropagation()}>
-                    <span className="text-[11px] font-mono text-sentra-cyan">
+                  <div className="flex items-center justify-between text-xs pt-1.5 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+                    <span className="text-[10px] font-mono text-sentra-cyan">
                       {server.trafficSource}
                     </span>
                     <div className="flex items-center gap-1">

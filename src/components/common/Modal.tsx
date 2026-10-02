@@ -48,40 +48,44 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 select-none">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-[#05070B]/85 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-background-surface border border-border rounded-xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} hud-bracket bg-background-surface border border-border-bright rounded shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150`}
         role="dialog"
         aria-modal="true"
       >
+        {/* Top cyan accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sentra-cyan/60 to-transparent" />
+
         {/* Header */}
-        <div className="flex items-start justify-between p-5 border-b border-border bg-background-subtle/50">
+        <div className="flex items-start justify-between p-4 sm:p-5 border-b border-border bg-background-subtle">
           <div>
-            <h3 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-mono font-bold uppercase tracking-wider text-text flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-sentra-cyan rounded-sm" />
               {title}
             </h3>
             {subtitle && (
-              <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+              <p className="text-[11px] font-mono text-text-muted mt-1">{subtitle}</p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 p-1.5 rounded-lg transition-colors"
+            className="text-text-muted hover:text-sentra-cyan hover:bg-background-card p-1.5 rounded transition-colors border border-transparent hover:border-border"
             aria-label="Close dialog"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[80vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 max-h-[82vh] overflow-y-auto custom-scrollbar">
           {children}
         </div>
       </div>

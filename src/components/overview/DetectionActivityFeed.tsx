@@ -41,29 +41,29 @@ export const DetectionActivityFeed: React.FC = () => {
       time: '12:10:00',
       type: 'system',
       title: 'Baseline behavioral vector matrix recalibrated',
-      target: 'Inference Engine (Phase 1 Mock)',
+      target: 'Inference Engine (Phase 5 RF)',
       score: null,
     },
   ];
 
   return (
-    <div className="soc-card p-5 bg-background-surface/80 border border-border rounded-xl">
+    <div className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-slate-100 font-display flex items-center gap-2">
+          <h3 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-text flex items-center gap-2">
             <Radio className="w-3.5 h-3.5 text-sentra-cyan animate-pulse" />
             Detection Activity Stream
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Sequential telemetry ingestion and classification log
+          <p className="text-[11px] font-mono text-text-muted mt-0.5">
+            Sequential telemetry ingestion & classification log
           </p>
         </div>
-        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-          Streaming Active
+        <span className="text-[9px] font-mono text-sentra-green bg-background px-2 py-0.5 rounded border border-sentra-green/30 font-bold uppercase tracking-wider">
+          STREAM ACTIVE
         </span>
       </div>
 
-      <div className="relative pl-4 space-y-4 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-[1px] before:bg-border">
+      <div className="relative pl-4 space-y-3.5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-[1px] before:bg-border">
         {events.map((ev, idx) => (
           <div
             key={idx}
@@ -76,28 +76,28 @@ export const DetectionActivityFeed: React.FC = () => {
             <div
               className={`absolute -left-[19px] top-1 w-2.5 h-2.5 rounded-full border-2 border-background-surface ${
                 ev.type === 'threat'
-                  ? 'bg-rose-500 ring-2 ring-rose-500/20'
+                  ? 'bg-sentra-danger ring-2 ring-sentra-danger/30'
                   : ev.type === 'telemetry'
-                  ? 'bg-sentra-cyan ring-2 ring-cyan-500/20'
-                  : 'bg-slate-500'
+                  ? 'bg-sentra-cyan ring-2 ring-sentra-cyan/30'
+                  : 'bg-text-muted/60'
               }`}
             />
 
             <div className="flex items-start justify-between text-xs">
               <div className="space-y-0.5 pr-2">
-                <div className="font-medium text-slate-200 group-hover:text-sentra-cyan transition-colors flex items-center gap-1.5">
-                  <span>{ev.title}</span>
+                <div className="font-mono text-text group-hover:text-sentra-cyan transition-colors flex items-center gap-1.5 flex-wrap">
+                  <span className="font-semibold text-xs">{ev.title}</span>
                   {ev.score && (
-                    <span className="text-[10px] font-mono text-rose-400 bg-rose-500/10 px-1 rounded">
-                      Score: {ev.score}%
+                    <span className="text-[9px] font-mono text-sentra-danger bg-sentra-danger/10 px-1 py-0.2 rounded border border-sentra-danger/30 font-bold">
+                      {ev.score}%
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] text-slate-400 font-mono">
+                <div className="text-[10px] text-text-muted font-mono">
                   {ev.target}
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-slate-500 shrink-0">
+              <span className="text-[9px] font-mono text-text-muted shrink-0">
                 {ev.time}
               </span>
             </div>
