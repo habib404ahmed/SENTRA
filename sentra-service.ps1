@@ -1,23 +1,46 @@
 <#
 .SYNOPSIS
-    SENTRA Backend Service Lifecycle Manager for Windows
+    SENTRA Backend — Optional Local Development Manager (NOT for production use)
 .DESCRIPTION
-    Manages automatic startup, background execution, health monitoring,
-    crash recovery, and logs for the SENTRA FastAPI backend.
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║  CLOUD-ONLY DEPLOYMENT — PRODUCTION RUNS ON RENDER              ║
+    ║                                                                  ║
+    ║  The SENTRA application is deployed and runs entirely in the     ║
+    ║  cloud using Render.com services:                                ║
+    ║    • Frontend  → Render Static Site (sentra-frontend-5u9x)       ║
+    ║    • Backend   → Render Web Service  (sentra-backend-zy7w)       ║
+    ║    • Database  → Render PostgreSQL   (sentra-db)                 ║
+    ║                                                                  ║
+    ║  This script is for OPTIONAL LOCAL DEVELOPMENT only.             ║
+    ║  It does NOT run automatically. The Windows Startup shortcut      ║
+    ║  has been removed. No scheduled tasks are registered.            ║
+    ║                                                                  ║
+    ║  To work with the production system, use:                        ║
+    ║    https://sentra-frontend-5u9x.onrender.com                     ║
+    ╚══════════════════════════════════════════════════════════════════╝
+
+    LOCAL DEV USAGE (manual, optional):
+    - Requires: local PostgreSQL + Python venv in backend/.venv
+    - Backend will NOT start automatically on login or system boot
+    - Use only for development and testing against a local database
+
+    Actions:
+      start     - Start the SENTRA backend in the background (dev only)
+      stop      - Stop the running local SENTRA backend
+      restart   - Restart the local backend
+      status    - Check local health, process status, database connectivity
+      logs      - View recent local backend logs
+      install   - [DISABLED] Do NOT use — auto-startup has been removed
+      uninstall - Remove any existing startup shortcuts or tasks
 .PARAMETER Action
-    install   - Configure automatic startup via Windows Task Scheduler and/or Startup shortcut
-    uninstall - Remove the automatic startup configuration
-    start     - Start the SENTRA backend in the background (no console window)
-    stop      - Stop the running SENTRA backend
-    restart   - Restart the SENTRA backend
-    status    - Check health, process status, and database connectivity
-    logs      - View recent backend logs
+    start | stop | restart | status | logs | uninstall
 .PARAMETER Follow
     Stream logs continuously when viewing logs (equivalent to tail -f)
 .EXAMPLE
     .\sentra-service.ps1 status
     .\sentra-service.ps1 start
     .\sentra-service.ps1 logs -Follow
+    .\sentra-service.ps1 uninstall
 #>
 
 [CmdletBinding()]
@@ -453,8 +476,26 @@ switch ($Action.ToLower()) {
     "restart"     { Restart-BackendService }
     "status"      { Show-BackendStatus }
     "logs"        { Show-BackendLogs }
-    "install"     { Install-AutoStartupTask }
-    "install-task"{ Install-AutoStartupTask -ElevatedMode }
+    "install"     {
+        Write-Host ""
+        Write-Host "=================================================================" -ForegroundColor Red
+        Write-Host "  AUTO-STARTUP DISABLED — SENTRA RUNS IN THE CLOUD             " -ForegroundColor Red
+        Write-Host "=================================================================" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "  Production runs on Render.com — no local process needed." -ForegroundColor Yellow
+        Write-Host "  Frontend:  https://sentra-frontend-5u9x.onrender.com" -ForegroundColor Cyan
+        Write-Host "  Backend:   https://sentra-backend-zy7w.onrender.com" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  The 'install' action has been disabled to prevent registering" -ForegroundColor White
+        Write-Host "  a startup shortcut or scheduled task on this machine." -ForegroundColor White
+        Write-Host ""
+        Write-Host "  For LOCAL DEVELOPMENT only, use: .\sentra-service.ps1 start" -ForegroundColor White
+        Write-Host "  To clean up any existing startup entries: .\sentra-service.ps1 uninstall" -ForegroundColor White
+        Write-Host ""
+    }
+    "install-task" {
+        Write-Host "Auto-startup is disabled. See 'install' for details." -ForegroundColor Yellow
+    }
     "uninstall"   { Uninstall-AutoStartupTask }
     default       { Show-BackendStatus }
 }
