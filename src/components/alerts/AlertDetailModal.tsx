@@ -248,7 +248,7 @@ export const AlertDetailModal: React.FC = () => {
                   <Activity className="w-3 h-3 text-cyan-400" />
                   Observed Network Facts (Passive Telemetry)
                 </span>
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-slate-950 p-2.5 rounded-lg border border-border text-slate-300">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-[11px] font-mono bg-slate-950 p-2.5 rounded-lg border border-border text-slate-300">
                   <div>Source IP: <span className="text-rose-400 font-bold">{alert.sourceIp}</span></div>
                   <div>Dest Target: <span className="text-slate-200">{alert.destinationIp}:{alert.destinationPort}</span></div>
                   <div>Protocol: <span className="text-sentra-cyan">{alert.protocol}</span></div>
@@ -273,7 +273,7 @@ export const AlertDetailModal: React.FC = () => {
                   <Cpu className="w-3 h-3 text-purple-400" />
                   Model Inferences (Probabilistic Classifiers)
                 </span>
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-slate-950 p-2.5 rounded-lg border border-border text-slate-300">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-[11px] font-mono bg-slate-950 p-2.5 rounded-lg border border-border text-slate-300">
                   <div>Predicted Class: <span className="text-sentra-cyan font-bold">{alert.threatClass || alert.threat}</span></div>
                   <div>Confidence / Vote: <span className="text-rose-400 font-bold">{(alert.modelScore).toFixed(1)}%</span></div>
                   <div>Detection Type: <span className="text-slate-200">{alert.detectionType || 'supervised_classification'}</span></div>
@@ -417,11 +417,11 @@ export const AlertDetailModal: React.FC = () => {
         </div>
 
         {/* Modal Footer */}
-        <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-slate-400">
-          <span className="font-mono text-[11px]">
+        <div className="pt-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+          <span className="font-mono text-[11px] text-center sm:text-left">
             Incident Ref: {alert.id} • Target Flow: {alert.flowId || 'Synthetic/Real Flow'}
           </span>
-          <Button variant="ghost" size="sm" onClick={() => setSelectedAlertId(null)}>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedAlertId(null)} className="w-full sm:w-auto">
             Dismiss
           </Button>
         </div>

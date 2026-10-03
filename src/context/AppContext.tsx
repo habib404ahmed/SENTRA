@@ -32,6 +32,10 @@ interface AppContextType {
   // Navigation & Page State
   activePage: PageId;
   setActivePage: (page: PageId) => void;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   
   // Selection states for detail modals/drawers
   selectedServerId: string | null;
@@ -91,7 +95,15 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [activePage, setActivePage] = useState<PageId>('overview');
+  const [activePage, setActivePageState] = useState<PageId>('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  const setActivePage = useCallback((page: PageId) => {
+    setActivePageState(page);
+    setIsMobileMenuOpen(false);
+  }, []);
+
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const [isAddServerOpen, setIsAddServerOpen] = useState(false);
@@ -510,6 +522,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       value={{
         activePage,
         setActivePage,
+        isMobileMenuOpen,
+        setIsMobileMenuOpen,
+        isSidebarCollapsed,
+        setIsSidebarCollapsed,
         selectedServerId,
         setSelectedServerId,
         selectedAlertId,

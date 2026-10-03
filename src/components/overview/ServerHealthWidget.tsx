@@ -7,7 +7,7 @@ export const ServerHealthWidget: React.FC = () => {
   const { servers, setSelectedServerId, setActivePage } = useApp();
 
   return (
-    <div className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border">
+    <div className="hud-bracket soc-card p-3.5 sm:p-4.5 bg-background-surface/90 border border-border min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
           <h3 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-text flex items-center gap-2">
@@ -23,14 +23,14 @@ export const ServerHealthWidget: React.FC = () => {
 
         <button
           onClick={() => setActivePage('servers')}
-          className="text-xs font-mono uppercase tracking-wider text-sentra-cyan hover:text-white font-medium flex items-center gap-1 hover:underline transition-colors"
+          className="text-xs font-mono uppercase tracking-wider text-sentra-cyan hover:text-white font-medium flex items-center gap-1 hover:underline transition-colors self-start sm:self-auto touch-manipulation"
         >
           <span>Manage Assets ({servers.length})</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {servers.slice(0, 6).map((server) => (
           <div
             key={server.id}

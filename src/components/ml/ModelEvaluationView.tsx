@@ -52,11 +52,11 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
   const { metrics, confusion_matrix, per_class_metrics, feature_importances } = evaluation;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl space-y-6 p-6 animate-fade-in">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl space-y-6 p-4 sm:p-6 animate-fade-in">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
             <FileBarChart className="w-6 h-6" />
           </div>
           <div>
@@ -82,7 +82,7 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
       </div>
 
       {/* Primary KPI Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {model.model_type === 'classifier' ? (
           <>
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
@@ -175,8 +175,8 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
             <span>Per-Class Threat Detection Metrics</span>
           </h3>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-800">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto custom-scrollbar rounded-xl border border-slate-800">
+            <table className="w-full min-w-[600px] text-left text-xs">
               <thead className="bg-slate-950 text-slate-400 font-medium border-b border-slate-800">
                 <tr>
                   <th className="py-2.5 px-4">Threat Class</th>
@@ -212,7 +212,7 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
             <span>Empirical Confusion Matrix</span>
           </h3>
 
-          <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 overflow-x-auto">
+          <div className="p-3.5 sm:p-4 bg-slate-950 rounded-xl border border-slate-800 overflow-x-auto custom-scrollbar">
             <div className="inline-block min-w-full">
               <table className="text-xs">
                 <thead>
@@ -263,7 +263,7 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
       {/* Feature Importances (Random Forest) */}
       {feature_importances && feature_importances.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
               <TrendingUp className="w-4 h-4 text-indigo-400" />
               <span>Gini / MDI Feature Importances (Top 12 Drivers)</span>
@@ -271,15 +271,15 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
             <span className="text-[11px] text-slate-500 italic">Model-specific heuristic ranking</span>
           </div>
 
-          <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+          <div className="p-3.5 sm:p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
             {feature_importances.slice(0, 12).map((fi, idx) => {
               const maxImp = feature_importances[0].importance || 1.0;
               const barPercent = Math.min(100, Math.round((fi.importance / maxImp) * 100));
 
               return (
-                <div key={fi.feature} className="flex items-center space-x-3 text-xs">
+                <div key={fi.feature} className="flex items-center space-x-2 sm:space-x-3 text-xs">
                   <span className="w-5 text-slate-500 font-mono text-[10px] text-right">#{idx + 1}</span>
-                  <span className="w-48 font-mono text-slate-300 truncate" title={fi.feature}>
+                  <span className="w-28 sm:w-48 font-mono text-slate-300 truncate" title={fi.feature}>
                     {fi.feature}
                   </span>
                   <div className="flex-1 bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
@@ -288,7 +288,7 @@ export const ModelEvaluationView: React.FC<ModelEvaluationViewProps> = ({
                       style={{ width: `${barPercent}%` }}
                     />
                   </div>
-                  <span className="w-16 font-mono text-indigo-400 text-right text-[11px]">
+                  <span className="w-14 sm:w-16 font-mono text-indigo-400 text-right text-[11px]">
                     {(fi.importance * 100).toFixed(2)}%
                   </span>
                 </div>

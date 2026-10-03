@@ -84,13 +84,13 @@ export const ServerDetailModal: React.FC = () => {
     >
       <div className="space-y-5">
         {/* Top Asset Identity Header Card */}
-        <div className="p-4 rounded-xl bg-background-card border border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="p-3 rounded-lg bg-slate-800 border border-slate-700 text-sentra-cyan shrink-0">
               <Server className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-base font-bold text-slate-100">{server.name}</span>
                 <Badge env={server.environment}>{server.environment}</Badge>
                 <Badge status={server.monitoringStatus}>{server.monitoringStatus}</Badge>
@@ -103,10 +103,11 @@ export const ServerDetailModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <Button
               variant={server.monitoringStatus === 'active' ? 'outline' : 'success'}
               size="sm"
+              className="flex-1 sm:flex-initial"
               icon={server.monitoringStatus === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               onClick={() => toggleServerMonitoring(server.id)}
             >
@@ -115,6 +116,7 @@ export const ServerDetailModal: React.FC = () => {
             <Button
               variant="secondary"
               size="sm"
+              className="flex-1 sm:flex-initial"
               icon={<Edit2 className="w-3.5 h-3.5" />}
               onClick={() => setIsEditing(true)}
             >
@@ -123,6 +125,7 @@ export const ServerDetailModal: React.FC = () => {
             <Button
               variant="danger"
               size="sm"
+              className="w-full sm:w-auto"
               icon={<Trash2 className="w-3.5 h-3.5" />}
               onClick={handleDelete}
               disabled={isDeleting}
@@ -148,7 +151,7 @@ export const ServerDetailModal: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-4">
             {/* 4 Stat Boxes */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3">
               <div className="p-3 rounded-lg bg-background-card border border-border">
                 <span className="text-[10px] uppercase font-mono text-slate-400">Packets Ingested</span>
                 <div className="text-xl font-bold font-mono text-slate-100 mt-0.5">
@@ -186,10 +189,10 @@ export const ServerDetailModal: React.FC = () => {
 
             {/* Ingress Telemetry Chart */}
             <div className="p-4 rounded-xl bg-background-card border border-border">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                 <h4 className="text-xs font-semibold text-slate-200 uppercase font-mono flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5 text-sentra-cyan" />
-                  Bandwidth & Ingress Rate (15m Intervals)
+                  <Activity className="w-3.5 h-3.5 text-sentra-cyan shrink-0" />
+                  <span>Bandwidth & Ingress Rate (15m Intervals)</span>
                 </h4>
                 <div className="flex items-center gap-3 text-[11px] font-mono">
                   <span className="text-sentra-cyan flex items-center gap-1">
@@ -200,7 +203,7 @@ export const ServerDetailModal: React.FC = () => {
                   </span>
                 </div>
               </div>
-              <div className="h-48 w-full">
+              <div className="h-44 sm:h-48 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={assetTelemetry}>
                     <defs>
@@ -236,7 +239,7 @@ export const ServerDetailModal: React.FC = () => {
               <h4 className="text-xs font-semibold text-slate-200 uppercase font-mono mb-3">
                 Packets Per Second (PPS) Ingress Waveform
               </h4>
-              <div className="h-56 w-full">
+              <div className="h-48 sm:h-56 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={assetTelemetry}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -365,11 +368,11 @@ export const ServerDetailModal: React.FC = () => {
         )}
 
         {/* Modal Footer */}
-        <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-slate-400">
-          <span className="font-mono text-[11px] text-sentra-cyan">
+        <div className="pt-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+          <span className="font-mono text-[11px] text-sentra-cyan text-center sm:text-left">
             PostgreSQL Asset ID: #{server.id} • Live Database Record
           </span>
-          <Button variant="ghost" size="sm" onClick={() => setSelectedServerId(null)}>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedServerId(null)} className="w-full sm:w-auto">
             Close Console
           </Button>
         </div>

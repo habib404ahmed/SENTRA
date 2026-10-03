@@ -119,7 +119,7 @@ export const AddServerModal: React.FC = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
           <Input
             label="Server Name *"
             placeholder="e.g. Inventory Master DB"
@@ -147,7 +147,7 @@ export const AddServerModal: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
           <Input
             label="Hostname *"
             placeholder="e.g. db-master-01.internal.corp"
@@ -178,7 +178,7 @@ export const AddServerModal: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
           <Select
             label="Environment"
             value={environment}
@@ -235,12 +235,13 @@ export const AddServerModal: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-border">
           <Button
             type="button"
             variant="ghost"
             onClick={handleClose}
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -250,6 +251,7 @@ export const AddServerModal: React.FC = () => {
             isLoading={isSubmitting}
             disabled={isSubmitting}
             icon={<Shield className="w-4 h-4" />}
+            className="w-full sm:w-auto"
           >
             Add Server
           </Button>

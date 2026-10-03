@@ -264,7 +264,7 @@ export const ModelsPage: React.FC = () => {
       )}
 
       {/* Tactical Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="soc-card p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400">Registered Models</span>
@@ -315,11 +315,11 @@ export const ModelsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border flex items-center justify-between font-mono">
-        <div className="flex gap-2">
+      <div className="border-b border-border flex items-center font-mono overflow-x-auto custom-scrollbar whitespace-nowrap -mx-1 px-1">
+        <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setActiveTab('models')}
-            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 shrink-0 touch-manipulation ${
               activeTab === 'models'
                 ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
                 : 'border-transparent text-text-muted hover:text-text'
@@ -330,7 +330,7 @@ export const ModelsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('jobs')}
-            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 shrink-0 touch-manipulation ${
               activeTab === 'jobs'
                 ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
                 : 'border-transparent text-text-muted hover:text-text'
@@ -346,7 +346,7 @@ export const ModelsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('datasets')}
-            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 shrink-0 touch-manipulation ${
               activeTab === 'datasets'
                 ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
                 : 'border-transparent text-text-muted hover:text-text'
@@ -357,7 +357,7 @@ export const ModelsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('evaluation')}
-            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 shrink-0 touch-manipulation ${
               activeTab === 'evaluation'
                 ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
                 : 'border-transparent text-text-muted hover:text-text'

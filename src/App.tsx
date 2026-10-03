@@ -18,7 +18,7 @@ import { ModelsPage } from '@/pages/ModelsPage';
 import { AddServerModal } from '@/components/servers/AddServerModal';
 
 export const AppContent: React.FC = () => {
-  const { activePage, isAuthenticated } = useApp();
+  const { activePage, isAuthenticated, isSidebarCollapsed } = useApp();
 
   if (!isAuthenticated) {
     return <LoginPage />;
@@ -56,16 +56,18 @@ export const AppContent: React.FC = () => {
       {/* Responsive Enterprise Sidebar */}
       <Sidebar />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pl-18 lg:pl-64 transition-all duration-300 relative z-10">
+      {/* Main Content Area: Zero left-padding on mobile, dynamic on desktop */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 relative z-10 pl-0 ${
+        isSidebarCollapsed ? 'lg:pl-18' : 'lg:pl-64'
+      }`}>
         <Header />
         
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full min-w-0">
           {renderActivePage()}
         </main>
 
         {/* Global Operational Footer */}
-        <footer className="border-t border-border px-6 py-3 bg-background-subtle text-xs text-sentra-muted flex flex-col sm:flex-row items-center justify-between gap-2">
+        <footer className="border-t border-border px-4 sm:px-6 py-3 bg-background-subtle text-xs text-sentra-muted flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2 text-xs">
             <span className="font-semibold text-slate-300">SENTRA</span>
             <span className="text-slate-600">•</span>

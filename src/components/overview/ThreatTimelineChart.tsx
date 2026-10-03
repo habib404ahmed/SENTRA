@@ -28,7 +28,7 @@ export const ThreatTimelineChart: React.FC<ThreatTimelineChartProps> = ({
   const hasData = data && data.length > 0;
 
   return (
-    <div className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border">
+    <div className="hud-bracket soc-card p-3.5 sm:p-4.5 bg-background-surface/90 border border-border min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -44,7 +44,7 @@ export const ThreatTimelineChart: React.FC<ThreatTimelineChartProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-mono">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-sentra-cyan shadow-[0_0_6px_#00E5FF]"></span>
             <span className="text-text-muted text-[11px]">Flow (Gbps)</span>
@@ -56,7 +56,7 @@ export const ThreatTimelineChart: React.FC<ThreatTimelineChartProps> = ({
         </div>
       </div>
 
-      <div className="h-64 w-full">
+      <div className="h-56 sm:h-64 w-full min-w-0">
         {isLoading ? (
           <div className="h-full w-full flex flex-col items-center justify-center gap-2 font-mono text-xs text-text-muted">
             <Activity className="w-6 h-6 text-sentra-cyan animate-spin" />

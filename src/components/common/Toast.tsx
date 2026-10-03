@@ -22,17 +22,18 @@ export const Toast: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 duration-200">
+    <div className="fixed bottom-4 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 z-50 animate-in slide-in-from-bottom-5 duration-200 flex justify-center sm:justify-end pointer-events-none">
       <div
-        className={`flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-md shadow-2xl max-w-md ${borders[toast.type]}`}
+        className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-md shadow-2xl w-full sm:w-auto max-w-md ${borders[toast.type]}`}
       >
         {icons[toast.type]}
-        <div className="text-sm font-medium text-slate-100 flex-1">
+        <div className="text-xs sm:text-sm font-medium text-slate-100 flex-1">
           {toast.message}
         </div>
         <button
           onClick={hideToast}
-          className="text-slate-400 hover:text-slate-200 p-1 hover:bg-white/10 rounded transition-colors"
+          className="text-slate-400 hover:text-slate-200 p-1 hover:bg-white/10 rounded transition-colors touch-manipulation"
+          aria-label="Dismiss notification"
         >
           <X className="w-4 h-4" />
         </button>

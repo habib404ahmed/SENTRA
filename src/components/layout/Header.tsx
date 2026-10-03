@@ -10,7 +10,8 @@ import {
   Check, 
   Radio, 
   AlertTriangle,
-  ChevronDown
+  ChevronDown,
+  Menu
 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -29,7 +30,9 @@ export const Header: React.FC = () => {
     serversDiagnostic,
     retryConnection,
     isAutoReconnecting,
-    autoReconnectCountdown
+    autoReconnectCountdown,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen
   } = useApp();
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -97,21 +100,32 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-20 h-14 bg-background-subtle/95 backdrop-blur-md border-b border-border px-4 sm:px-6 flex items-center justify-between select-none">
-      {/* Page Title & Breadcrumb */}
-      <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-sm font-semibold text-slate-100">
-            {currentInfo.title}
-          </h1>
-          <span className="text-slate-600 text-xs">/</span>
-          <span className="text-xs font-medium text-sentra-cyan capitalize">
-            {activePage}
-          </span>
+    <header className="sticky top-0 z-20 h-14 bg-background-subtle/95 backdrop-blur-md border-b border-border px-3 sm:px-6 flex items-center justify-between select-none">
+      {/* Page Title & Breadcrumb + Mobile Menu Toggle */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-1.5 -ml-1 rounded text-slate-300 hover:text-sentra-cyan hover:bg-background-card transition-colors lg:hidden shrink-0 touch-manipulation"
+          aria-label="Open navigation sidebar"
+          title="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <h1 className="text-xs sm:text-sm font-semibold text-slate-100 truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
+              {currentInfo.title}
+            </h1>
+            <span className="text-slate-600 text-xs shrink-0">/</span>
+            <span className="text-xs font-medium text-sentra-cyan capitalize shrink-0">
+              {activePage}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-500 hidden md:block mt-0.5 truncate">
+            {currentInfo.subtitle}
+          </p>
         </div>
-        <p className="text-[11px] text-slate-500 hidden md:block mt-0.5">
-          {currentInfo.subtitle}
-        </p>
       </div>
 
       {/* Right Controls */}
@@ -207,7 +221,7 @@ export const Header: React.FC = () => {
 
           {/* Notifications Dropdown Panel */}
           {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-background-surface border border-border-bright rounded shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-background-surface border border-border-bright rounded shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between p-3 border-b border-border bg-background-subtle">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-text">

@@ -104,7 +104,7 @@ export const EditServerModal: React.FC<EditServerModalProps> = ({ server, isOpen
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
           <Input
             label="Server Name *"
             value={name}
@@ -193,13 +193,14 @@ export const EditServerModal: React.FC<EditServerModalProps> = ({ server, isOpen
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 pt-3 border-t border-border">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={onClose}
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -208,6 +209,7 @@ export const EditServerModal: React.FC<EditServerModalProps> = ({ server, isOpen
             variant="primary"
             size="sm"
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             {isSubmitting ? 'Saving changes...' : 'Save Changes'}
           </Button>

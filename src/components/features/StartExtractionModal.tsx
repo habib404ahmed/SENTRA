@@ -45,9 +45,9 @@ export const StartExtractionModal: React.FC<StartExtractionModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
       <div className="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 bg-slate-900/50">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
               <Play className="w-5 h-5" />
             </div>
             <div>
@@ -64,7 +64,7 @@ export const StartExtractionModal: React.FC<StartExtractionModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center space-x-2">
               <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
@@ -102,7 +102,7 @@ export const StartExtractionModal: React.FC<StartExtractionModalProps> = ({
               </label>
               <span className="text-xs font-mono text-indigo-400">{windowSeconds}s</span>
             </div>
-            <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="grid grid-cols-1 xs:grid-cols-3 gap-2 mb-2">
               {[60, 300, 600].map((sec) => (
                 <button
                   type="button"
@@ -135,18 +135,18 @@ export const StartExtractionModal: React.FC<StartExtractionModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="pt-2 flex justify-end space-x-3">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all"
+              className="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || completedImports.length === 0}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center space-x-2 shadow-lg shadow-indigo-600/20"
+              className="w-full sm:w-auto px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/20"
             >
               {loading ? (
                 <>

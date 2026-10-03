@@ -178,19 +178,19 @@ export const FlowExplorer: React.FC<FlowExplorerProps> = ({ initialImportId = nu
       </div>
 
       {/* Unidirectional Info Header */}
-      <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+      <div className="flex flex-col sm:flex-row gap-1.5 sm:items-center justify-between text-xs text-slate-400 px-1">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>Showing <strong className="text-slate-200">{flows.length}</strong> of <strong className="text-slate-200">{total}</strong> Directional Flows</span>
         </div>
-        <span className="font-mono text-[11px] text-sentra-cyan">
+        <span className="font-mono text-[10px] sm:text-[11px] text-sentra-cyan">
           Ordered 5-Tuple: (Src IP, Src Port, Dst IP, Dst Port, Protocol)
         </span>
       </div>
 
       {/* Data Table */}
-      <div className="soc-card bg-background-surface/80 border border-border rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="soc-card bg-background-surface/80 border border-border rounded-xl overflow-hidden min-w-0">
+        <div className="overflow-x-auto custom-scrollbar -mx-3 sm:mx-0 px-3 sm:px-0">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-border bg-background-subtle/40 text-slate-400 uppercase tracking-wider text-[10px] font-mono">

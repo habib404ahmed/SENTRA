@@ -67,7 +67,7 @@ export const SearchModal: React.FC = () => {
     : alerts.slice(0, 3);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-3 sm:px-4 select-none">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-20 px-2 sm:px-4 select-none">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-[#05070B]/85 backdrop-blur-sm"
@@ -75,37 +75,37 @@ export const SearchModal: React.FC = () => {
       />
 
       {/* Search Container */}
-      <div className="relative w-full max-w-2xl hud-bracket bg-background-surface border border-border-bright rounded shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-2xl max-w-[calc(100vw-1rem)] hud-bracket bg-background-surface border border-border-bright rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
         {/* Top cyan accent line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sentra-cyan/60 to-transparent" />
 
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-border bg-background-card">
-          <Search className="w-4 h-4 text-sentra-cyan shrink-0 mr-3" />
+        <div className="flex items-center px-3.5 py-3 border-b border-border bg-background-card">
+          <Search className="w-4 h-4 text-sentra-cyan shrink-0 mr-2.5" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search targets, IPs, threat categories, alerts (e.g., '10.0.0.30', 'DDoS', 'Auth')..."
+            placeholder="Search targets, IPs, threats, IDs..."
             className="w-full bg-transparent text-xs font-mono text-text placeholder-text-muted/60 focus:outline-none"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="text-text-muted hover:text-text p-1 mr-2"
+              className="text-text-muted hover:text-text p-1 mr-1.5 touch-manipulation"
               aria-label="Clear search query"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="text-[9px] font-mono px-2 py-0.5 rounded bg-background text-text-muted border border-border">
+          <kbd className="hidden sm:inline-block text-[9px] font-mono px-2 py-0.5 rounded bg-background text-text-muted border border-border">
             ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        <div className="max-h-[75vh] sm:max-h-[60vh] overflow-y-auto p-3 sm:p-4 space-y-4 custom-scrollbar">
           {/* Servers Group */}
           <div>
             <div className="text-[10px] font-mono uppercase tracking-wider text-text-muted mb-2 flex items-center gap-1.5">

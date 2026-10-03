@@ -133,8 +133,8 @@ export const ImportHistoryTable: React.FC<ImportHistoryTableProps> = ({
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full min-w-[760px] text-left text-xs">
           <thead>
             <tr className="border-b border-border bg-background-subtle/40 text-slate-400 uppercase tracking-wider text-[10px] font-mono">
               <th className="py-3 px-4 font-medium">Capture File</th>

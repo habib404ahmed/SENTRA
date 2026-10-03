@@ -112,49 +112,53 @@ export const SettingsView: React.FC = () => {
 
       {/* Tab 0: Cloud API & Backend */}
       {activeTab === 'backend' && (
-        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
+        <div className="soc-card p-4 sm:p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
           <div>
             <h3 className="text-sm font-semibold text-slate-100 font-display flex items-center gap-2">
-              <Globe className="w-4 h-4 text-sentra-cyan" />
-              FastAPI Threat Defense Backend & Database Integration
+              <Globe className="w-4 h-4 text-sentra-cyan shrink-0" />
+              <span>FastAPI Threat Defense Backend & Database Integration</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
               Connect this frontend SOC console to your deployed FastAPI backend web service or local development instance.
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-background-card border border-border space-y-4">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border space-y-4">
             <div>
               <label className="block text-xs font-mono font-medium text-slate-300 mb-1.5">
                 Backend API Base URL
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
-                  placeholder="https://sentra-backend.onrender.com (or http://localhost:8000)"
+                  placeholder="https://sentra-backend.onrender.com"
                   value={customApiUrl}
                   onChange={(e) => setCustomApiUrl(e.target.value)}
-                  className="flex-1 bg-background border border-border focus:border-sentra-cyan rounded px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none"
+                  className="w-full sm:flex-1 bg-background border border-border focus:border-sentra-cyan rounded px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none"
                 />
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleSaveApiUrl}
-                  icon={<Save className="w-3.5 h-3.5" />}
-                >
-                  Save URL
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleTestConnection}
-                  disabled={isDiagnosing}
-                  icon={<RefreshCw className={`w-3.5 h-3.5 ${isDiagnosing ? 'animate-spin' : ''}`} />}
-                >
-                  {isDiagnosing ? 'Testing...' : 'Test Connection'}
-                </Button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="flex-1 sm:flex-initial"
+                    onClick={handleSaveApiUrl}
+                    icon={<Save className="w-3.5 h-3.5" />}
+                  >
+                    Save URL
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1 sm:flex-initial whitespace-nowrap"
+                    onClick={handleTestConnection}
+                    disabled={isDiagnosing}
+                    icon={<RefreshCw className={`w-3.5 h-3.5 ${isDiagnosing ? 'animate-spin' : ''}`} />}
+                  >
+                    {isDiagnosing ? 'Testing...' : 'Test Connection'}
+                  </Button>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 mt-1 font-mono">
+              <p className="text-[11px] text-slate-400 mt-2 font-mono break-all">
                 Currently Active Endpoint Origin: <strong className="text-sentra-cyan">{API_BASE_URL || '(Same-Origin Relative /api)'}</strong>
               </p>
             </div>
@@ -182,11 +186,11 @@ export const SettingsView: React.FC = () => {
 
       {/* Tab 1: Unidirectional Monitoring */}
       {activeTab === 'monitoring' && (
-        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
+        <div className="soc-card p-4 sm:p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
           <div>
             <h3 className="text-sm font-semibold text-slate-100 font-display flex items-center gap-2">
-              <Lock className="w-4 h-4 text-emerald-400" />
-              Passive Sensor & Diode Enforcement
+              <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Passive Sensor & Diode Enforcement</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
               Strict hardware and software boundaries guaranteeing zero reverse-path network emissions.
@@ -195,9 +199,9 @@ export const SettingsView: React.FC = () => {
 
           <div className="space-y-4">
             {/* Toggle 1 */}
-            <div className="p-4 rounded-xl bg-background-card border border-border flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border flex items-center justify-between gap-3">
               <div className="space-y-0.5 max-w-xl">
-                <div className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <div className="text-xs font-semibold text-slate-200 flex flex-wrap items-center gap-2">
                   <span>Enforce Passive Read-Only Ingestion Mode</span>
                   <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px] border border-emerald-500/20">
                     Active
@@ -211,14 +215,14 @@ export const SettingsView: React.FC = () => {
                 type="checkbox"
                 checked={passiveMode}
                 onChange={(e) => setPassiveMode(e.target.checked)}
-                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan"
+                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan shrink-0"
               />
             </div>
 
             {/* Toggle 2 */}
-            <div className="p-4 rounded-xl bg-background-card border border-border flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border flex items-center justify-between gap-3">
               <div className="space-y-0.5 max-w-xl">
-                <div className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <div className="text-xs font-semibold text-slate-200 flex flex-wrap items-center gap-2">
                   <span>Optical Data Diode Link Verification</span>
                   <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px] border border-emerald-500/20">
                     Hardware Locked
@@ -232,16 +236,16 @@ export const SettingsView: React.FC = () => {
                 type="checkbox"
                 checked={readOnlyDiode}
                 onChange={(e) => setReadOnlyDiode(e.target.checked)}
-                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan"
+                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan shrink-0"
               />
             </div>
 
             {/* Ingestion Buffer Size */}
-            <div className="p-4 rounded-xl bg-background-card border border-border space-y-2">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border space-y-2">
               <label className="block text-xs font-semibold text-slate-200">
                 Ring Buffer Allocation (Per 10GbE Tap Interface):
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div className="p-3 rounded-lg bg-slate-900 border border-sentra-cyan/40 text-xs">
                   <span className="font-mono text-sentra-cyan font-bold block">4,096 MB (Default)</span>
                   <span className="text-[11px] text-slate-400">Zero-loss burst threshold at line rate</span>
@@ -250,7 +254,7 @@ export const SettingsView: React.FC = () => {
                   <span className="font-mono text-slate-300 font-bold block">2,048 MB</span>
                   <span className="text-[11px] text-slate-400">Low-memory appliance profile</span>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-900 border border-border text-xs opacity-60">
+                <div className="p-3 rounded-lg bg-slate-900 border border-border text-xs opacity-60 sm:col-span-2 lg:col-span-1">
                   <span className="font-mono text-slate-300 font-bold block">8,192 MB</span>
                   <span className="text-[11px] text-slate-400">Ultra-high density carrier profile</span>
                 </div>
@@ -262,6 +266,7 @@ export const SettingsView: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
+              className="w-full sm:w-auto"
               icon={<Save className="w-3.5 h-3.5" />}
               onClick={() => handleSave('Monitoring & Diode')}
             >
@@ -273,14 +278,14 @@ export const SettingsView: React.FC = () => {
 
       {/* Tab 2: Detection & ML Pipeline */}
       {activeTab === 'detection' && (
-        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
+        <div className="soc-card p-4 sm:p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-semibold text-slate-100 font-display flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-purple-400" />
-                AI Inference Engine & Anomaly Thresholds
+                <Cpu className="w-4 h-4 text-purple-400 shrink-0" />
+                <span>AI Inference Engine & Anomaly Thresholds</span>
               </h3>
-              <Badge variant="demo">Phase 2 Backend Roadmap Placeholder</Badge>
+              <Badge variant="demo">Phase 2 Roadmap</Badge>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
               These parameters configure the upcoming Phase 2 XGBoost / Isolation Forest ML model inference pipeline.
@@ -289,8 +294,8 @@ export const SettingsView: React.FC = () => {
 
           <div className="space-y-4">
             {/* Slider: Threshold */}
-            <div className="p-4 rounded-xl bg-background-card border border-border space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border space-y-3">
+              <div className="flex items-center justify-between gap-3">
                 <div>
                   <span className="text-xs font-semibold text-slate-200 block">
                     Model Confidence Alert Threshold
@@ -299,7 +304,7 @@ export const SettingsView: React.FC = () => {
                     Incidents scoring above this threshold trigger real-time SOC incident escalation.
                   </p>
                 </div>
-                <span className="text-lg font-bold font-mono text-sentra-cyan bg-slate-900 px-2.5 py-1 rounded border border-border">
+                <span className="text-lg font-bold font-mono text-sentra-cyan bg-slate-900 px-2.5 py-1 rounded border border-border shrink-0">
                   {detectionThreshold}%
                 </span>
               </div>
@@ -313,18 +318,18 @@ export const SettingsView: React.FC = () => {
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sentra-cyan"
               />
               <div className="flex justify-between text-[10px] font-mono text-slate-500">
-                <span>50% (High Sensitivity / False Positives)</span>
-                <span>85% (Recommended Balanced)</span>
-                <span>99% (Strict High Confidence Only)</span>
+                <span>50% <span className="hidden sm:inline">(High Sensitivity)</span></span>
+                <span>85% <span className="hidden sm:inline">(Balanced)</span></span>
+                <span>99% <span className="hidden sm:inline">(Strict Only)</span></span>
               </div>
             </div>
 
             {/* Model Architecture Selection (Placeholder) */}
-            <div className="p-4 rounded-xl bg-background-card border border-border space-y-3">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border space-y-3">
               <span className="text-xs font-semibold text-slate-200 block">
                 Primary Supervised Classifier Architecture (Phase 2 Roadmap)
               </span>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 rounded-lg bg-slate-900 border border-purple-500/40">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-bold text-slate-100 font-mono">XGBoost Ensemble</span>
@@ -345,7 +350,7 @@ export const SettingsView: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3 rounded-lg bg-slate-900 border border-border opacity-70">
+                <div className="p-3 rounded-lg bg-slate-900 border border-border opacity-70 sm:col-span-2 lg:col-span-1">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-bold text-slate-300 font-mono">Temporal LSTM</span>
                     <Badge variant="demo">Research</Badge>
@@ -362,6 +367,7 @@ export const SettingsView: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
+              className="w-full sm:w-auto"
               icon={<Save className="w-3.5 h-3.5" />}
               onClick={() => handleSave('Detection Pipeline')}
             >
@@ -373,11 +379,11 @@ export const SettingsView: React.FC = () => {
 
       {/* Tab 3: Notifications */}
       {activeTab === 'notifications' && (
-        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
+        <div className="soc-card p-4 sm:p-6 bg-background-surface/80 border border-border rounded-xl space-y-6">
           <div>
             <h3 className="text-sm font-semibold text-slate-100 font-display flex items-center gap-2">
-              <Bell className="w-4 h-4 text-amber-400" />
-              SOC Notification Channels & Webhooks
+              <Bell className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>SOC Notification Channels & Webhooks</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
               Dispatch incident escalations to security engineers.
@@ -385,7 +391,7 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <div className="p-4 rounded-xl bg-background-card border border-border flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border flex items-center justify-between gap-3">
               <div>
                 <span className="text-xs font-semibold text-slate-200 block">
                   Email Dispatch to Incident Responders
@@ -398,11 +404,11 @@ export const SettingsView: React.FC = () => {
                 type="checkbox"
                 checked={emailAlerts}
                 onChange={(e) => setEmailAlerts(e.target.checked)}
-                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan"
+                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan shrink-0"
               />
             </div>
 
-            <div className="p-4 rounded-xl bg-background-card border border-border flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border flex items-center justify-between gap-3">
               <div>
                 <span className="text-xs font-semibold text-slate-200 block">
                   Filter: Escalate Critical Priority Incidents Only
@@ -415,7 +421,7 @@ export const SettingsView: React.FC = () => {
                 type="checkbox"
                 checked={criticalOnly}
                 onChange={(e) => setCriticalOnly(e.target.checked)}
-                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan"
+                className="w-4 h-4 rounded text-sentra-cyan bg-slate-900 border-border focus:ring-sentra-cyan shrink-0"
               />
             </div>
           </div>
@@ -424,6 +430,7 @@ export const SettingsView: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
+              className="w-full sm:w-auto"
               icon={<Save className="w-3.5 h-3.5" />}
               onClick={() => handleSave('Notification Channels')}
             >
@@ -435,32 +442,32 @@ export const SettingsView: React.FC = () => {
 
       {/* Tab 4: General */}
       {activeTab === 'general' && (
-        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-4">
+        <div className="soc-card p-4 sm:p-6 bg-background-surface/80 border border-border rounded-xl space-y-4">
           <h3 className="text-sm font-semibold text-slate-100 font-display">
             Smart India Hackathon 2026 Project Metadata
           </h3>
-          <div className="p-4 rounded-xl bg-background-card border border-border space-y-2 text-xs font-mono">
-            <div className="flex justify-between py-1 border-b border-border/60">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-border space-y-2.5 text-xs font-mono">
+            <div className="flex flex-col sm:flex-row sm:justify-between py-1 border-b border-border/60 gap-0.5">
               <span className="text-slate-400">Problem Statement ID:</span>
               <span className="text-sentra-cyan font-bold">26145</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-border/60">
+            <div className="flex flex-col sm:flex-row sm:justify-between py-1 border-b border-border/60 gap-0.5">
               <span className="text-slate-400">Official Problem Statement:</span>
               <span className="text-slate-200">AI-Based Detection of Cyber Threats in Unidirectional IP Traffic</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-border/60">
+            <div className="flex flex-col sm:flex-row sm:justify-between py-1 border-b border-border/60 gap-0.5">
               <span className="text-slate-400">Team Name:</span>
               <span className="text-slate-200">Sentra 1</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-border/60">
+            <div className="flex flex-col sm:flex-row sm:justify-between py-1 border-b border-border/60 gap-0.5">
               <span className="text-slate-400">Team ID:</span>
               <span className="text-slate-200">191970</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-border/60">
+            <div className="flex flex-col sm:flex-row sm:justify-between py-1 border-b border-border/60 gap-0.5">
               <span className="text-slate-400">Theme:</span>
               <span className="text-slate-200">Blockchain & Cybersecurity</span>
             </div>
-            <div className="flex justify-between py-1">
+            <div className="flex flex-col sm:flex-row sm:justify-between py-1 gap-0.5">
               <span className="text-slate-400">Current Phase:</span>
               <span className="text-emerald-400 font-bold">Phase 1 (Complete UI/UX Prototype)</span>
             </div>
@@ -470,14 +477,14 @@ export const SettingsView: React.FC = () => {
 
       {/* Tab 5: Appearance */}
       {activeTab === 'appearance' && (
-        <div className="soc-card p-6 bg-background-surface/80 border border-border rounded-xl space-y-4">
+        <div className="soc-card p-4 sm:p-6 bg-background-surface/80 border border-border rounded-xl space-y-4">
           <h3 className="text-sm font-semibold text-slate-100 font-display">
             SOC Console Theme & Display Mode
           </h3>
           <p className="text-xs text-slate-400">
             SENTRA operates in Dark-First High Contrast mode optimized for Security Operations Centers (SOC) 24/7 monitoring environments.
           </p>
-          <div className="p-4 rounded-xl bg-background-card border border-sentra-cyan/40 text-xs flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-background-card border border-sentra-cyan/40 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="font-semibold text-slate-100 block">Dark SOC Palette (Active)</span>
               <span className="text-slate-400">#080b11 deep background with cyan & rose threat highlights</span>

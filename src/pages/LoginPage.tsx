@@ -21,13 +21,13 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center items-center px-4 relative overflow-hidden grid-pattern">
+    <div className="min-h-screen bg-background flex flex-col justify-center items-center px-3 sm:px-4 py-6 sm:py-0 relative overflow-hidden grid-pattern">
       {/* Subtle ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-sentra-cyan/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-sentra-cyan/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-60 sm:w-80 h-60 sm:h-80 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Login Card */}
-      <div className="w-full max-w-md bg-background-surface/90 border border-border rounded-2xl p-8 shadow-2xl backdrop-blur-md relative z-10 space-y-6">
+      <div className="w-full max-w-md bg-background-surface/90 border border-border rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur-md relative z-10 space-y-5 sm:space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-br from-sentra-cyan to-blue-600 flex items-center justify-center shadow-glow-cyan">

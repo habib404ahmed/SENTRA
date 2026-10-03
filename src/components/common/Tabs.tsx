@@ -21,16 +21,16 @@ export const Tabs: React.FC<TabsProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex items-center gap-1 border-b border-border ${className}`}>
+    <div className={`flex items-center gap-1 border-b border-border overflow-x-auto custom-scrollbar whitespace-nowrap -mx-1 px-1 ${className}`}>
       {tabs.map(tab => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-all relative border-b-2 -mb-[1px] ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 text-xs font-medium transition-all relative border-b-2 -mb-[1px] shrink-0 touch-manipulation ${
               isActive
-                ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5'
+                ? 'border-sentra-cyan text-sentra-cyan bg-sentra-cyan/5 font-semibold'
                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
             }`}
           >

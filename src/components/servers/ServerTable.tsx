@@ -133,10 +133,10 @@ export const ServerTable: React.FC = () => {
       )}
 
       {/* Control Bar: Filters & Actions */}
-      <div className="soc-card p-4 bg-background-surface/90 border border-border rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5 flex-1">
+      <div className="soc-card p-3.5 sm:p-4 bg-background-surface/90 border border-border rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 flex-1">
           {/* Search Box */}
-          <div className="relative min-w-[240px] flex-1 max-w-sm">
+          <div className="relative w-full sm:w-auto min-w-[200px] flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -151,7 +151,7 @@ export const ServerTable: React.FC = () => {
           <select
             value={selectedEnv}
             onChange={(e) => setSelectedEnv(e.target.value)}
-            className="bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
+            className="flex-1 sm:flex-initial bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
           >
             <option value="all">All Environments</option>
             <option value="production">Production</option>
@@ -165,7 +165,7 @@ export const ServerTable: React.FC = () => {
           <select
             value={selectedSource}
             onChange={(e) => setSelectedSource(e.target.value)}
-            className="bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
+            className="flex-1 sm:flex-initial bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
           >
             <option value="all">All Traffic Sources</option>
             <option value="Flow Telemetry">Flow Telemetry</option>
@@ -181,7 +181,7 @@ export const ServerTable: React.FC = () => {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
+            className="flex-1 sm:flex-initial bg-background-card border border-border text-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-sentra-cyan"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active Monitoring</option>
@@ -190,32 +190,34 @@ export const ServerTable: React.FC = () => {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 self-end lg:self-auto">
-          {/* Refresh Button */}
-          <button
-            onClick={() => refreshServers()}
-            className={`p-1.5 rounded bg-background-card border border-border text-slate-400 hover:text-sentra-cyan transition-colors ${serversLoading ? 'animate-spin text-sentra-cyan' : ''}`}
-            title="Refresh assets from PostgreSQL"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-border/50">
+          <div className="flex items-center gap-2">
+            {/* Refresh Button */}
+            <button
+              onClick={() => refreshServers()}
+              className={`p-1.5 rounded bg-background-card border border-border text-slate-400 hover:text-sentra-cyan transition-colors ${serversLoading ? 'animate-spin text-sentra-cyan' : ''}`}
+              title="Refresh assets from PostgreSQL"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
 
-          {/* Table / Card view toggle */}
-          <div className="flex items-center bg-background-card border border-border rounded-lg p-0.5">
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded ${viewMode === 'table' ? 'bg-slate-800 text-sentra-cyan' : 'text-slate-400 hover:text-slate-200'}`}
-              title="Table view"
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setViewMode('cards')}
-              className={`p-1.5 rounded ${viewMode === 'cards' ? 'bg-slate-800 text-sentra-cyan' : 'text-slate-400 hover:text-slate-200'}`}
-              title="Card view"
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-            </button>
+            {/* Table / Card view toggle */}
+            <div className="flex items-center bg-background-card border border-border rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded ${viewMode === 'table' ? 'bg-slate-800 text-sentra-cyan' : 'text-slate-400 hover:text-slate-200'}`}
+                title="Table view"
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`p-1.5 rounded ${viewMode === 'cards' ? 'bg-slate-800 text-sentra-cyan' : 'text-slate-400 hover:text-slate-200'}`}
+                title="Card view"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           <Button
@@ -240,8 +242,8 @@ export const ServerTable: React.FC = () => {
         </div>
       ) : viewMode === 'table' ? (
         <div className="soc-card bg-background-surface/80 border border-border rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full min-w-[820px] text-left text-xs">
               <thead>
                 <tr className="border-b border-border bg-background-subtle/40 text-slate-400 uppercase tracking-wider text-[10px] font-mono">
                   <th className="py-3 px-4 font-medium">Server Name / Hostname</th>
@@ -424,7 +426,7 @@ export const ServerTable: React.FC = () => {
         </div>
       ) : (
         /* Cards View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {serversError ? (
             <div className="col-span-full soc-card p-12 bg-background-surface/80 border border-rose-500/30 rounded-xl text-center text-xs">
               <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mx-auto mb-3">

@@ -211,12 +211,12 @@ export const PcapUploadCard: React.FC<PcapUploadCardProps> = ({ onUploadSuccess 
         )}
 
         {/* Submit Actions */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="text-[11px] text-slate-500">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+          <div className="text-[11px] text-slate-500 truncate max-w-full">
             {selectedFile ? `Selected: ${selectedFile.name}` : 'No capture file chosen'}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             {selectedFile && (
               <Button
                 type="button"
@@ -228,6 +228,7 @@ export const PcapUploadCard: React.FC<PcapUploadCardProps> = ({ onUploadSuccess 
                   if (fileInputRef.current) fileInputRef.current.value = '';
                 }}
                 disabled={isUploading}
+                className="flex-1 sm:flex-initial"
               >
                 Clear
               </Button>
@@ -239,6 +240,7 @@ export const PcapUploadCard: React.FC<PcapUploadCardProps> = ({ onUploadSuccess 
               size="sm"
               icon={isUploading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
               disabled={!selectedFile || isUploading}
+              className="flex-1 sm:flex-initial"
             >
               {isUploading ? 'Streaming Upload...' : 'Ingest & Parse PCAP'}
             </Button>

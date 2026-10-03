@@ -101,10 +101,11 @@ export const ReportsView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <Button
             variant="outline"
             size="sm"
+            className="flex-1 sm:flex-initial"
             icon={<FileSpreadsheet className="w-3.5 h-3.5" />}
             onClick={() => handleExport('csv')}
           >
@@ -114,6 +115,7 @@ export const ReportsView: React.FC = () => {
           <Button
             variant="secondary"
             size="sm"
+            className="flex-1 sm:flex-initial"
             icon={<Download className="w-3.5 h-3.5" />}
             onClick={() => handleExport('pdf')}
           >
@@ -123,6 +125,7 @@ export const ReportsView: React.FC = () => {
           <Button
             variant="primary"
             size="sm"
+            className="w-full sm:w-auto"
             isLoading={isGenerating}
             icon={<Printer className="w-3.5 h-3.5" />}
             onClick={handleGenerateReport}
@@ -133,18 +136,18 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* 4 Summary Cards (Daily, Threat, Server, Traffic) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Daily Security Summary */}
         <div className="soc-card p-4 bg-background-surface/80 border border-border rounded-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-200">Daily Security Summary</span>
-              <Calendar className="w-4 h-4 text-sentra-cyan" />
+              <Calendar className="w-4 h-4 text-sentra-cyan shrink-0 ml-2" />
             </div>
             <div className="text-xl font-bold font-mono text-slate-100 mt-2">
               27 Incidents
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
               Recorded across all 6 monitored server nodes in 24 hours.
             </p>
           </div>
@@ -158,12 +161,12 @@ export const ReportsView: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-200">Threat Breakdown</span>
-              <ShieldCheck className="w-4 h-4 text-rose-400" />
+              <ShieldCheck className="w-4 h-4 text-rose-400 shrink-0 ml-2" />
             </div>
             <div className="text-xl font-bold font-mono text-rose-400 mt-2">
               4 Critical
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
               DDoS SYN flood and DNS tunneling require priority triage.
             </p>
           </div>
@@ -177,12 +180,12 @@ export const ReportsView: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-200">Monitored Assets</span>
-              <Layers className="w-4 h-4 text-purple-400" />
+              <Layers className="w-4 h-4 text-purple-400 shrink-0 ml-2" />
             </div>
             <div className="text-xl font-bold font-mono text-slate-100 mt-2">
               {servers.length} Registered
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
               5 Production, 1 Staging under passive optical tap monitoring.
             </p>
           </div>
@@ -196,12 +199,12 @@ export const ReportsView: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-200">Ingress Bandwidth</span>
-              <Clock className="w-4 h-4 text-amber-400" />
+              <Clock className="w-4 h-4 text-amber-400 shrink-0 ml-2" />
             </div>
             <div className="text-xl font-bold font-mono text-slate-100 mt-2">
               24.8 GB Total
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
               Zero frame drops across passive unidirectional mirror interfaces.
             </p>
           </div>
@@ -212,8 +215,8 @@ export const ReportsView: React.FC = () => {
       </div>
 
       {/* Audit Log / Generated Reports Table */}
-      <div className="soc-card p-5 bg-background-surface/80 border border-border rounded-xl space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="soc-card p-4 sm:p-5 bg-background-surface/80 border border-border rounded-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-slate-100 font-display">
               Generated Reports Archive
@@ -222,11 +225,13 @@ export const ReportsView: React.FC = () => {
               Historical compliance reports archived for Smart India Hackathon evaluation
             </p>
           </div>
-          <Badge variant="demo">SIH-2026 Archive</Badge>
+          <div className="self-start sm:self-auto">
+            <Badge variant="demo">SIH-2026 Archive</Badge>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto custom-scrollbar -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full min-w-[640px] text-left text-xs">
             <thead>
               <tr className="border-b border-border text-slate-400 uppercase tracking-wider text-[10px] font-mono">
                 <th className="pb-3 px-3 font-medium">Report Reference</th>

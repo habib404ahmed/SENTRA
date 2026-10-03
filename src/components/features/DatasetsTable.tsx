@@ -19,7 +19,7 @@ export const DatasetsTable: React.FC<DatasetsTableProps> = ({ datasets, loading,
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-      <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <FileSpreadsheet className="w-5 h-5 text-indigo-400" />
           <h3 className="text-base font-semibold text-white">Generated Dataset Artifacts</h3>
@@ -27,8 +27,8 @@ export const DatasetsTable: React.FC<DatasetsTableProps> = ({ datasets, loading,
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full min-w-[720px] text-left text-xs">
           <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-medium">
             <tr>
               <th className="py-3 px-4">Dataset Name</th>

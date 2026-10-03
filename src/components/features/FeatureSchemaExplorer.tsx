@@ -77,11 +77,11 @@ export const FeatureSchemaExplorer: React.FC<FeatureSchemaExplorerProps> = ({ sc
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
       {/* Header & Controls */}
-      <div className="p-6 border-b border-slate-800 space-y-4">
+      <div className="p-4 sm:p-6 border-b border-slate-800 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2">
-              <Database className="w-5 h-5 text-indigo-400" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Database className="w-5 h-5 text-indigo-400 shrink-0" />
               <h3 className="text-base font-semibold text-white">
                 Versioned Feature Schema Explorer
               </h3>
@@ -94,14 +94,14 @@ export const FeatureSchemaExplorer: React.FC<FeatureSchemaExplorerProps> = ({ sc
             </p>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">Filter Scope:</span>
-            <div className="flex bg-slate-800/80 p-0.5 rounded-xl border border-slate-700/60">
+            <div className="flex flex-wrap bg-slate-800/80 p-0.5 rounded-xl border border-slate-700/60">
               {scopes.map((scope) => (
                 <button
                   key={scope}
                   onClick={() => setSelectedScope(scope)}
-                  className={`px-3 py-1 text-xs rounded-lg font-medium capitalize transition-all ${
+                  className={`px-2.5 sm:px-3 py-1 text-xs rounded-lg font-medium capitalize transition-all ${
                     selectedScope === scope
                       ? 'bg-indigo-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
@@ -128,8 +128,8 @@ export const FeatureSchemaExplorer: React.FC<FeatureSchemaExplorerProps> = ({ sc
       </div>
 
       {/* Features Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full min-w-[760px] text-left text-xs">
           <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-medium">
             <tr>
               <th className="py-3 px-4">Feature Name</th>

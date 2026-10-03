@@ -96,28 +96,28 @@ export const TrafficAnalyticsDashboard: React.FC = () => {
       </div>
 
       {/* Top 4 Metrics Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="soc-card p-4 bg-background-surface/80 border border-border rounded-xl">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="soc-card p-3.5 sm:p-4 bg-background-surface/80 border border-border rounded-xl">
           <span className="text-[10px] font-mono uppercase text-slate-400">Total Volume Ingested</span>
-          <div className="text-2xl font-bold font-mono text-slate-100 mt-1">24.8 GB</div>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-slate-100 mt-1">24.8 GB</div>
           <span className="text-[10px] text-emerald-400 font-mono mt-1 block">+14% vs yesterday</span>
         </div>
 
-        <div className="soc-card p-4 bg-background-surface/80 border border-border rounded-xl">
+        <div className="soc-card p-3.5 sm:p-4 bg-background-surface/80 border border-border rounded-xl">
           <span className="text-[10px] font-mono uppercase text-slate-400">Peak Packets / Sec</span>
-          <div className="text-2xl font-bold font-mono text-sentra-cyan mt-1">9,420 PPS</div>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-sentra-cyan mt-1">9,420 PPS</div>
           <span className="text-[10px] text-slate-400 font-mono mt-1 block">At 16:00 UTC (E-Comm peak)</span>
         </div>
 
-        <div className="soc-card p-4 bg-background-surface/80 border border-border rounded-xl">
+        <div className="soc-card p-3.5 sm:p-4 bg-background-surface/80 border border-border rounded-xl">
           <span className="text-[10px] font-mono uppercase text-slate-400">Active Flow Entries</span>
-          <div className="text-2xl font-bold font-mono text-slate-100 mt-1">638.1K</div>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-slate-100 mt-1">638.1K</div>
           <span className="text-[10px] text-slate-400 font-mono mt-1 block">NetFlow / IPFIX / Mirror</span>
         </div>
 
-        <div className="soc-card p-4 bg-background-surface/80 border border-border rounded-xl">
-          <span className="text-[10px] font-mono uppercase text-slate-400">Anomaly Anomaly Rate</span>
-          <div className="text-2xl font-bold font-mono text-amber-400 mt-1">0.042%</div>
+        <div className="soc-card p-3.5 sm:p-4 bg-background-surface/80 border border-border rounded-xl">
+          <span className="text-[10px] font-mono uppercase text-slate-400">Anomaly Rate</span>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-amber-400 mt-1">0.042%</div>
           <span className="text-[10px] text-rose-400 font-mono mt-1 block">4 active threats flagged</span>
         </div>
       </div>
@@ -125,8 +125,8 @@ export const TrafficAnalyticsDashboard: React.FC = () => {
       {/* Primary Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Chart 1: Traffic Volume & Bytes Per Second */}
-        <div className="soc-card p-5 bg-background-surface/80 border border-border rounded-xl">
-          <div className="flex items-center justify-between mb-4">
+        <div className="soc-card p-3.5 sm:p-5 bg-background-surface/80 border border-border rounded-xl min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div>
               <h3 className="text-sm font-semibold text-slate-100 font-display">
                 Ingress Flow Volume & Throughput
@@ -135,12 +135,12 @@ export const TrafficAnalyticsDashboard: React.FC = () => {
                 Volumetric traffic bandwidth (Gbps) over 24-hour observation window
               </p>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-sentra-cyan border border-slate-700">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-sentra-cyan border border-slate-700 self-start sm:self-auto shrink-0">
               10GbE Tap Interface
             </span>
           </div>
 
-          <div className="h-60 w-full">
+          <div className="h-56 sm:h-60 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={mockHourlyTraffic}>
                 <defs>
@@ -160,8 +160,8 @@ export const TrafficAnalyticsDashboard: React.FC = () => {
         </div>
 
         {/* Chart 2: Packets Per Second & Flow Count */}
-        <div className="soc-card p-5 bg-background-surface/80 border border-border rounded-xl">
-          <div className="flex items-center justify-between mb-4">
+        <div className="soc-card p-3.5 sm:p-5 bg-background-surface/80 border border-border rounded-xl min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div>
               <h3 className="text-sm font-semibold text-slate-100 font-display">
                 Packets Per Second (PPS) & Flow Count
@@ -170,12 +170,12 @@ export const TrafficAnalyticsDashboard: React.FC = () => {
                 Packet velocity spikes indicate DDoS or network scan sweeps
               </p>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-purple-400 border border-slate-700">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-purple-400 border border-slate-700 self-start sm:self-auto shrink-0">
               PPS Telemetry
             </span>
           </div>
 
-          <div className="h-60 w-full">
+          <div className="h-56 sm:h-60 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={mockHourlyTraffic}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
@@ -191,9 +191,9 @@ export const TrafficAnalyticsDashboard: React.FC = () => {
       </div>
 
       {/* Protocol & Top Talkers Tables Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Protocol Distribution */}
-        <div className="soc-card p-5 bg-background-surface/80 border border-border rounded-xl">
+        <div className="soc-card p-4 sm:p-5 bg-background-surface/80 border border-border rounded-xl min-w-0">
           <h3 className="text-sm font-semibold text-slate-100 font-display mb-1">
             Protocol Breakdown
           </h3>

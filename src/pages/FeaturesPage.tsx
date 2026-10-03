@@ -184,7 +184,7 @@ export const FeaturesPage: React.FC = () => {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3">
         <div className="soc-card p-4">
           <span className="text-xs text-slate-400">Total Pipeline Jobs</span>
           <p className="text-2xl font-bold text-slate-100 mt-1.5">{jobs.length}</p>
@@ -218,10 +218,10 @@ export const FeaturesPage: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-border flex items-center gap-1">
+      <div className="border-b border-border flex items-center gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap -mx-1 px-1">
         <button
           onClick={() => setActiveTab('jobs')}
-          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative ${
+          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative shrink-0 touch-manipulation ${
             activeTab === 'jobs'
               ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
               : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
@@ -238,7 +238,7 @@ export const FeaturesPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('datasets')}
-          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative ${
+          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative shrink-0 touch-manipulation ${
             activeTab === 'datasets'
               ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
               : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
@@ -253,7 +253,7 @@ export const FeaturesPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('schema')}
-          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative ${
+          className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all relative shrink-0 touch-manipulation ${
             activeTab === 'schema'
               ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
               : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'

@@ -16,13 +16,13 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose }) 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
       <div className="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 bg-slate-900/50">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-base sm:text-lg font-semibold text-white">
                 Feature Extraction Audit Report — Job #{job.id}
               </h3>
               <p className="text-xs text-slate-400">
@@ -39,9 +39,9 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose }) 
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-6">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 custom-scrollbar">
           {/* Top Status & Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-800">
               <span className="text-xs text-slate-400">Processing Status</span>
               <div className="flex items-center space-x-2 mt-1">
@@ -93,7 +93,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose }) 
                 <span>Data Quality & Integrity Audit</span>
               </h4>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
                   <span className="text-xs text-slate-400">Total Input Flows</span>
                   <p className="text-base font-semibold text-slate-200">{report.total_input_records}</p>
@@ -135,7 +135,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose }) 
               {Object.keys(report.missing_value_counts).length > 0 && (
                 <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-800">
                   <span className="text-xs font-semibold text-slate-300">Missing Values Handled & Imputed:</span>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {Object.entries(report.missing_value_counts).map(([col, count]) => (
                       <div key={col} className="flex justify-between text-xs bg-slate-900/60 px-3 py-2 rounded-lg border border-slate-800">
                         <span className="text-slate-400 font-mono">{col}</span>
@@ -165,7 +165,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose }) 
         <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-all"
+            className="w-full sm:w-auto px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-all"
           >
             Close Report
           </button>

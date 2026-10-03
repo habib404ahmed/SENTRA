@@ -91,7 +91,7 @@ export const FlowDetailModal: React.FC<FlowDetailModalProps> = ({ flow, isOpen, 
         </div>
 
         {/* Flow Metric Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-background-subtle/50 border border-border">
             <span className="text-[10px] uppercase font-mono text-slate-400 block">Packet Count</span>
             <span className="text-lg font-bold font-mono text-slate-100">{flow.packet_count.toLocaleString()}</span>
@@ -131,7 +131,7 @@ export const FlowDetailModal: React.FC<FlowDetailModalProps> = ({ flow, isOpen, 
               <span className="text-[11px] font-mono text-slate-400">Recorded Headers</span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2 text-center font-mono">
+            <div className="grid grid-cols-2 xs:grid-cols-4 gap-2 text-center font-mono">
               <div className="p-2.5 rounded-lg bg-slate-900 border border-border">
                 <span className="text-[10px] text-slate-400 block mb-1">SYN</span>
                 <span className={`text-base font-bold ${flow.tcp_syn_count > 0 ? 'text-amber-400' : 'text-slate-500'}`}>
@@ -161,23 +161,23 @@ export const FlowDetailModal: React.FC<FlowDetailModalProps> = ({ flow, isOpen, 
         )}
 
         {/* Ingestion & Host Association */}
-        <div className="p-3 rounded-lg bg-background-card border border-border/80 text-xs font-mono space-y-1.5 text-slate-400">
-          <div className="flex justify-between">
+        <div className="p-3.5 rounded-lg bg-background-card border border-border/80 text-xs font-mono space-y-2 text-slate-400">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5">
             <span>Associated Monitored Asset:</span>
             <span className="text-slate-200">{flow.server_name || (flow.server_id ? `Asset #${flow.server_id}` : 'Unassigned / Global Tap')}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5">
             <span>Source PCAP Ingestion ID:</span>
             <span className="text-sentra-cyan">Import #{flow.import_id}</span>
           </div>
           {flow.start_time && (
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5">
               <span>First Packet Timestamp:</span>
               <span className="text-slate-200">{new Date(flow.start_time).toLocaleString()}</span>
             </div>
           )}
           {flow.end_time && (
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5">
               <span>Last Packet Timestamp:</span>
               <span className="text-slate-200">{new Date(flow.end_time).toLocaleString()}</span>
             </div>
@@ -186,7 +186,7 @@ export const FlowDetailModal: React.FC<FlowDetailModalProps> = ({ flow, isOpen, 
 
         {/* Modal Actions */}
         <div className="flex items-center justify-end pt-3 border-t border-border">
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="w-full sm:w-auto">
             Close Explorer
           </Button>
         </div>

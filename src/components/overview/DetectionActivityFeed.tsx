@@ -47,7 +47,7 @@ export const DetectionActivityFeed: React.FC = () => {
   ];
 
   return (
-    <div className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border">
+    <div className="hud-bracket soc-card p-3.5 sm:p-4.5 bg-background-surface/90 border border-border min-w-0">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-text flex items-center gap-2">

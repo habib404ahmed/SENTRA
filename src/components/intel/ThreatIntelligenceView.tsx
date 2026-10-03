@@ -86,8 +86,8 @@ export const ThreatIntelligenceView: React.FC = () => {
                     <div className="p-2 rounded bg-slate-800 text-sentra-cyan">
                       <ShieldAlert className="w-4 h-4" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-slate-100">
                           {cat.category}
                         </span>
@@ -207,7 +207,7 @@ export const ThreatIntelligenceView: React.FC = () => {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar -mx-4 sm:mx-0 px-4 sm:px-0">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-border text-slate-400 uppercase tracking-wider text-[10px] font-mono">

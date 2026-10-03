@@ -91,7 +91,7 @@ export const IngestionPage: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2.5">
           {[{
             num: '01', label: '1. Passive Ingress',
             desc: 'PCAP / PCAPNG or Optical Diode Tap. Zero transmit return-path.',
@@ -129,14 +129,14 @@ export const IngestionPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="pt-2 text-[10px] text-slate-500 flex items-center justify-between border-t border-border">
+        <div className="pt-2 text-[10px] text-slate-500 flex flex-col sm:flex-row gap-1 sm:items-center justify-between border-t border-border">
           <span>Physical deployment: read-only diode. Cloud: authorized packet captures.</span>
           <span className="text-sentra-cyan font-semibold">100% PASSIVE TAP COMPLIANT</span>
         </div>
       </div>
 
       {/* Ingestion Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="soc-card p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400">Total PCAP Captures</span>
@@ -182,7 +182,7 @@ export const IngestionPage: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-border flex items-center gap-1">
+      <div className="border-b border-border flex items-center gap-1 overflow-x-auto custom-scrollbar whitespace-nowrap -mx-1 px-1">
         {[
           { id: 'upload' as const, icon: <UploadCloud className="w-3.5 h-3.5" />, label: 'Upload & Ingest' },
           { id: 'flows' as const, icon: <Layers className="w-3.5 h-3.5" />, label: 'Flow Explorer' },
@@ -191,7 +191,7 @@ export const IngestionPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all ${
+            className={`pb-3 px-1 mr-4 text-xs font-semibold flex items-center gap-2 transition-all shrink-0 touch-manipulation ${
               activeTab === tab.id
                 ? 'text-sentra-cyan border-b-2 border-sentra-cyan'
                 : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'

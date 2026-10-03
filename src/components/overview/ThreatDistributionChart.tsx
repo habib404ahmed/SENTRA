@@ -31,7 +31,7 @@ export const ThreatDistributionChart: React.FC<ThreatDistributionChartProps> = (
   const defaultColors = ['#00E5FF', '#FF1744', '#FFB300', '#9C27B0', '#00E676', '#3B82F6', '#EC4899'];
 
   return (
-    <div className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border flex flex-col justify-between">
+    <div className="hud-bracket soc-card p-3.5 sm:p-4.5 bg-background-surface/90 border border-border flex flex-col justify-between min-w-0">
       <div>
         <div className="flex items-center justify-between">
           <h3 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-text">
@@ -46,7 +46,7 @@ export const ThreatDistributionChart: React.FC<ThreatDistributionChartProps> = (
         </p>
       </div>
 
-      <div className="relative h-44 w-full my-2">
+      <div className="relative h-44 w-full my-2 min-w-0">
         {isLoading ? (
           <div className="h-full w-full flex flex-col items-center justify-center gap-2 font-mono text-xs text-text-muted">
             <Activity className="w-5 h-5 text-sentra-cyan animate-spin" />

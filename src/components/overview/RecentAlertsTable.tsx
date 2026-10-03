@@ -8,7 +8,7 @@ export const RecentAlertsTable: React.FC = () => {
   const recentAlerts = alerts.slice(0, 5);
 
   return (
-    <div className="hud-bracket soc-card p-4.5 bg-background-surface/90 border border-border">
+    <div className="hud-bracket soc-card p-3.5 sm:p-4.5 bg-background-surface/90 border border-border min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
           <h3 className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-text flex items-center gap-2">
@@ -24,14 +24,14 @@ export const RecentAlertsTable: React.FC = () => {
 
         <button
           onClick={() => setActivePage('alerts')}
-          className="text-xs font-mono uppercase tracking-wider text-sentra-cyan hover:text-white font-medium flex items-center gap-1 hover:underline transition-colors"
+          className="text-xs font-mono uppercase tracking-wider text-sentra-cyan hover:text-white font-medium flex items-center gap-1 hover:underline transition-colors self-start sm:self-auto touch-manipulation"
         >
           <span>View All ({alerts.length})</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto custom-scrollbar -mx-3.5 sm:mx-0 px-3.5 sm:px-0">
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="border-b border-border text-text-muted uppercase tracking-wider text-[10px] font-mono bg-background/50">
